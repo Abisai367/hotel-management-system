@@ -16,19 +16,45 @@ const CategoryDisplay = () => {
   const { myCart, setMyCart } = useContext(MyCart);
   const [itemsToDelete, setItemsToDelete] = useState([]);
 
+  const rawApiUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '') : '';
+  const apiUrl = rawApiUrl || '/api';
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const imageBaseUrl = rawApiUrl.replace(/\/api$/, '');
+
+  const getProductImageUrl = (productPath) => {
+    const rawPath = productPath?.toString().trim();
+    if (!rawPath) {
+      return '';
+    }
+
+    const normalizedPath = rawPath.replace(/\\/g, '/');
+
+    if (/^https?:\/\//i.test(normalizedPath)) {
+      return normalizedPath;
+    }
+
+    if (normalizedPath.startsWith('/')) {
+      return `${baseUrl}${normalizedPath.replace(/^\/+/, '')}`;
+    }
+
+    if (/^uploads\//i.test(normalizedPath)) {
+      return `${baseUrl}${normalizedPath.replace(/^\/+/, '')}`;
+    }
+
+    return `${baseUrl}uploads/products/${encodeURIComponent(normalizedPath)}`;
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
-        const response = await fetch(`${apiUrl}/index.php`
-          , {
-                method: 'POST',
-                body: JSON.stringify({ action: 'fetch_categories' }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-        }
-        );
+        const response = await fetch(`${apiUrl}/index.php`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile)'
+          }
+        });
         const data = await response.json();
         setProducts(data);
       } catch (error) {
@@ -41,7 +67,7 @@ const CategoryDisplay = () => {
     fetchProducts();
   }, []);
 
-const isProductInCart = (product) => {
+  const isProductInCart = (product) => {
   return myCart.some(
     (item) => item.product_name === product.product_name && item.price === product.price
   );
@@ -52,7 +78,7 @@ const handleCart = (product) => {
     product_name: product.product_name,
     description: product.description,
     price: product.price,
-    product_path: `/uploads/products/${product.product_path}`,
+    product_path: getProductImageUrl(product.product_path),
     quantity: 1,
   };
 
@@ -84,12 +110,23 @@ const handleCart = (product) => {
         <div className="loading">Loading products...</div>
       ) : (
         <ul className="products-grid">
-          {products.map((product, index) => (
-            <li className="product-item" key={product.product_name || product.product_path || index}>
-              <img className="img" loading="lazy" src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/products/${product.product_path}`} alt={product.product_name || 'Product image'} />
-              <h2 className="product-name">{capitalizeFirstWord(product.product_name || product.name || 'Unnamed product')}</h2>
-              <p className="product-description">{product.description}</p>
-              <div className="product-footer">
+          {products.map((product, index) => {
+            const imageUrl = getProductImageUrl(product.product_path);
+            return (
+              <li className="product-item" key={product.product_name || product.product_path || index}>
+                <img
+                  className="img"
+                  loading="lazy"
+                  src={imageUrl || `${baseUrl}projectpics/lightmode.png`}
+                  alt={product.product_name || 'Product image'}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`;
+                  }}
+                />
+                <h2 className="product-name">{capitalizeFirstWord(product.product_name || product.name || 'Unnamed product')}</h2>
+                <p className="product-description">{product.description}</p>
+                <div className="product-footer">
                 <span className="product-price">Kshs. {product.price}</span>
                 <button
                   className="add-to-cart"
@@ -100,7 +137,8 @@ const handleCart = (product) => {
                 </button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

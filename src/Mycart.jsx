@@ -6,6 +6,7 @@ import "./Mycart.css";
 
 export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
+  const baseUrl = import.meta.env.BASE_URL || '/';
   
   const [tableNumber, setTableNumber] = useState("");
   const [pickupTime, setPickupTime] = useState("");
@@ -173,10 +174,11 @@ export default function Mycart() {
                 <li className="cart-item" key={`${item.product_name}-${index}`}>
                   <div className="item-media">
                     <img
-                      src={item.product_path || "/uploads/products/placeholder.png"}
+                      src={item.product_path || `${baseUrl}projectpics/lightmode.png`}
                       alt={item.product_name}
                       onError={(e) => {
-                        e.target.src = "/uploads/products/placeholder.png";
+                        e.target.onerror = null;
+                        e.target.src = `${baseUrl}projectpics/lightmode.png`;
                       }}
                     />
                   </div>

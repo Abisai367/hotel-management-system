@@ -37,10 +37,12 @@ export default function Sidebar() {
     }
   };
 
+  const baseUrl = import.meta.env.BASE_URL || '/';
+
   return (
     <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <img src={isDark ? "/projectpics/darkmode.jpg" : "/projectpics/lightmode.png"} alt="Our Logo" className="sidebar-logo"/>
+        <img src={isDark ? `${baseUrl}projectpics/darkmode.jpg` : `${baseUrl}projectpics/lightmode.png`} alt="Our Logo" className="sidebar-logo"/>
         <div className="sidebar-title"> 
           <span className="title-main">Five</span> 
           <span className="title-sub">Star Hotel</span>

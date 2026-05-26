@@ -12,6 +12,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/uploads': {
+        target: 'http://localhost/hotel%20management%20system',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   define: {

@@ -24,9 +24,10 @@ function App() {
           <Sidebar />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<UploadCategories />} />
-              <Route path="/categories" element={<CategoriesDisplay />} />
+              <Route path="/upload" element={<UploadCategories />} />
+              <Route path="/" element={<CategoriesDisplay />} />
               <Route path="/MyCart" element={<Mycart />} />
+              <Route path="/categories" element={<CategoriesDisplay />} />
             </Routes>
           </main>
         </div>
