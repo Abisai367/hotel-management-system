@@ -45,7 +45,7 @@ export default function UploadCategories(){
         formdata.append('file', file);
 
         try{
-            const apiUrl = import.meta.env.VITE_API_URL || '/api';
+            const apiUrl = import.meta.env.VITE_API_URL || 'https://fivestarhotel.rf.gd/api';
             const response = await fetch(`${apiUrl}/addcategory.php`, {
                 method: 'POST',
                 body: formdata

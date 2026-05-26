@@ -92,7 +92,7 @@ export default function Mycart() {
     try {
       setLoadingPay(true);
       setPayMessage(null);
-      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://fivestarhotel.rf.gd/api';
       const res = await fetch(`${apiUrl}/stkpush.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

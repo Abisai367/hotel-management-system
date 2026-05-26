@@ -16,8 +16,8 @@ const CategoryDisplay = () => {
   const { myCart, setMyCart } = useContext(MyCart);
   const [itemsToDelete, setItemsToDelete] = useState([]);
 
-  const rawApiUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '') : '';
-  const apiUrl = rawApiUrl || '/api';
+  const rawApiUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '') : 'https://fivestarhotel.rf.gd/api';
+  const apiUrl = rawApiUrl;
   const baseUrl = import.meta.env.BASE_URL || '/';
   const imageBaseUrl = rawApiUrl.replace(/\/api$/, '');
 
@@ -48,13 +48,7 @@ const CategoryDisplay = () => {
     const fetchProducts = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
-        const response = await fetch(`${apiUrl}/index.php`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile)'
-          }
-        });
+        const response = await fetch(`${apiUrl}/index.php`);
         const data = await response.json();
         setProducts(data);
       } catch (error) {
