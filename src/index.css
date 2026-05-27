@@ -18,7 +18,7 @@
     --shadow-color: rgba(11, 74, 70, 0.1);
 }
 
-/* Dark Mode */
+
 @media (prefers-color-scheme: dark) {
     :root {
         --primary-color: #0f766e;
@@ -58,12 +58,17 @@ input, textarea, select {
     transition: all 0.3s ease;
 }
 
-/* Increase base font size on smaller devices for better readability */
 @media (max-width: 1000px) {
     html {
-        font-size: 18px;
+        font-size: 25px;
     }
     body {
-        line-height: 1.7;
+        line-height: 1.9;
     }
+}
+
+@media (max-width: 480px) {
+    html { font-size: 25px; }
+    body { line-height: 1.9; }
+    :root { --text-dark: #e6eef0; --text-light: #cfe6e8; }
 }
