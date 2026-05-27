@@ -97,7 +97,7 @@ const handleCart = (product) => {
         <h1 className="category-title">PRODUCTS</h1>
         <div className="category-actions">
           <Link to="/MyCart"><button className="btn btn-primary">My Cart</button></Link>
-          <Link to="/"><button className="btn btn-secondary">Add Product</button></Link>
+          <Link to="/upload"><button className="btn btn-secondary">Add Product</button></Link>
         </div>
       </div>
       {isLoading ? (

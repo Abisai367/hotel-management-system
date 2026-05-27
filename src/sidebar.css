@@ -76,10 +76,16 @@
     margin: 0;
     display: grid;
     gap: 12px;
+    width: 100%;
+}
+
+.nav-menu > * {
+    width: 100%;
 }
 
 .nav-item {
     display: flex;
+    width: 100%;
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
@@ -128,27 +134,42 @@
     letter-spacing: 0.18em;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
+    /* Compact header visible by default; full panel opens as centered overlay */
     .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
         width: 100%;
-        min-width: auto;
+        min-height: 84px;
         height: auto;
-        position: static;
-        flex-direction: row;
+        background: #053A3E;
+        padding: 14px 16px;
+        display: flex;
         align-items: center;
-        padding: 18px 20px;
-        margin-bottom: 20px;
-        box-shadow: none;
-        flex-wrap: wrap;
+        justify-content: space-between;
+        z-index: 1500;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        border-radius: 0;
     }
 
+    /* Full dropdown panel when opened */
     .sidebar.open {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
         display: flex;
         flex-direction: column;
-        flex-wrap: nowrap;
-        align-items: stretch;
-        padding-bottom: 20px;
-        background: linear-gradient(180deg, #0f4f56 0%, #0a2f33 100%);
+        padding: 14px 16px 20px;
+        border-radius: 0;
+        background: #053A3E;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        z-index: 2000;
+        overflow-y: auto;
     }
 
     .sidebar-header {
@@ -157,7 +178,7 @@
         margin-bottom: 0;
         padding-bottom: 0;
         border-bottom: none;
-        gap: 16px;
+        gap: 12px;
         justify-content: space-between;
         width: 100%;
     }
@@ -166,24 +187,25 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        border: none;
-        background: rgba(255, 255, 255, 0.12);
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.08);
         color: white;
         cursor: pointer;
-        transition: background-color 0.2s ease;
-        font-size: 20px;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        font-size: 22px;
     }
 
     .sidebar-toggle:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.16);
+        transform: translateY(-1px);
     }
 
     .sidebar-logo {
-        width: 48px;
-        height: 48px;
+        width: 52px;
+        height: 52px;
         margin-bottom: 0;
     }
 
@@ -192,11 +214,18 @@
         flex: 1;
     }
 
-    .sidebar-nav,
-    .sidebar-footer {
+    .title-main {
+        font-size: 28px;
+    }
+
+    .title-sub {
+        font-size: 16px;
+    }
+
+    /* Hide nav and footer in compact mode */
+    .sidebar:not(.open) .sidebar-nav,
+    .sidebar:not(.open) .sidebar-footer {
         display: none;
-        width: 100%;
-        margin-top: 16px;
     }
 
     .sidebar.open .sidebar-nav,
@@ -221,14 +250,44 @@
     }
 
     .sidebar.open .nav-menu {
-        gap: 10px;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .sidebar.open .nav-menu > * {
+        width: 100%;
+    }
+
+    .nav-item {
+        width: 100%;
+        font-size: 17px;
+        padding: 14px 18px;
+    }
+
+    .nav-icon {
+        font-size: 20px;
+        width: 24px;
+        height: 24px;
     }
 
     .sidebar-footer {
         margin-top: 20px;
         padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         width: 100%;
         order: 2;
+    }
+
+    /* Backdrop for overlay */
+    .backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 1400;
+        display: none;
+    }
+
+    .backdrop.visible {
+        display: block;
     }
 }

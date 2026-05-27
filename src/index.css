@@ -57,3 +57,13 @@ input, textarea, select {
     font-family: 'Poppins', 'Segoe UI', sans-serif;
     transition: all 0.3s ease;
 }
+
+/* Increase base font size on smaller devices for better readability */
+@media (max-width: 1000px) {
+    html {
+        font-size: 18px;
+    }
+    body {
+        line-height: 1.7;
+    }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaThLarge, FaUtensils, FaComments, FaFileInvoice, FaBars, FaTimes } from 'react-icons/fa';
+import { FaThLarge, FaUtensils, FaComments, FaFileInvoice, FaBars, FaTimes, FaPlus } from 'react-icons/fa';
 import { FaGear, FaBell, FaHeadset } from "react-icons/fa6";
 import './sidebar.css'
 import { Link } from "react-router-dom";
@@ -15,7 +15,7 @@ export default function Sidebar() {
     mediaQuery.addEventListener("change", handler);
 
     const resizeHandler = () => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth > 1000) {
         setNavOpen(false);
       }
     };
@@ -32,7 +32,7 @@ export default function Sidebar() {
   };
 
   const handleNavClick = () => {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1000) {
       setNavOpen(false);
     }
   };
@@ -40,6 +40,7 @@ export default function Sidebar() {
   const baseUrl = import.meta.env.BASE_URL || '/';
 
   return (
+    <>
     <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <img src={isDark ? `${baseUrl}projectpics/darkmode.jpg` : `${baseUrl}projectpics/lightmode.png`} alt="Our Logo" className="sidebar-logo"/>
@@ -56,6 +57,7 @@ export default function Sidebar() {
         <ul className="nav-menu" onClick={handleNavClick}>
             <li className="nav-item"><FaThLarge className="nav-icon"/> Dashboard</li>
             <Link to="/categories"> <li className="nav-item"><FaUtensils className="nav-icon"/> Foods</li> </Link>
+            <Link to="/upload"> <li className="nav-item"><FaPlus className="nav-icon"/> Add Product</li> </Link>
             <li className="nav-item"><FaComments className="nav-icon"/> Messages</li>
             <li className="nav-item active"><FaFileInvoice className="nav-icon"/> Bills</li>
             <li className="nav-item"><FaGear className="nav-icon"/> Settings</li>
@@ -70,5 +72,7 @@ export default function Sidebar() {
         </ul>
       </div>
     </aside>
+    <div className={`backdrop ${navOpen ? 'visible' : ''}`} onClick={() => setNavOpen(false)} />
+    </>
   );
 }

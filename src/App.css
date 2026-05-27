@@ -82,12 +82,20 @@ body::-webkit-scrollbar {
 }
 
 /* Responsive: Stack on smaller screens */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   .main-content {
     margin-left: 0;
+    height: auto;
+    min-height: calc(100vh - 84px);
+    padding-top: 84px;
   }
 
   .app-layout {
     flex-direction: column;
+  }
+
+  /* Make main content comfortable on smaller screens */
+  .main-content {
+    padding: 20px;
   }
 }
