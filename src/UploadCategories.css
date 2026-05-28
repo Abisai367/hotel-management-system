@@ -1,5 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+:root {
+    --light-bg: #f3f5f7;
+    --bg: #f3f5f7;
+    --card-bg: #ffffff;
+    --primary-color: #0b4a46;
+    --accent-color: #d3a42d;
+    --text-dark: #0d2b2b;
+    --muted: #5d6a75;
+    --border-color: rgba(11,74,70,0.08);
+    --shadow-color: rgba(11,74,70,0.06);
+}
+
 .upload-container {
     width: 100%;
     min-height: 100vh;
@@ -7,13 +19,14 @@
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
-    background: var(--light-bg, #f3f5f7);
+    background: var(--bg);
     transition: background-color 0.3s ease;
 }
 
 .upload-content {
     width: 100%;
     max-width: 700px;
+    margin: 0 12px;
 }
 
 .upload-title {
@@ -21,14 +34,14 @@
     font-weight: 700;
     letter-spacing: 2px;
     margin-bottom: 32px;
-    color: var(--text-dark, #0d2b2b);
+    color: var(--text-dark);
     text-transform: uppercase;
     text-align: center;
 }
 
 .upload-form {
     width: 100%;
-    background: var(--card-bg, #ffffff);
+    background: var(--card-bg);
     backdrop-filter: blur(10px);
     padding: 40px;
     border-radius: 18px;
@@ -40,12 +53,13 @@
     margin-bottom: 28px;
 }
 
-.upload-form label {
+.upload-form label,
+.delete-by-name label {
     display: block;
     margin-bottom: 12px;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--text-dark, #203636);
+    color: var(--text-dark);
     transition: 0.3s ease;
 }
 
@@ -55,38 +69,40 @@
 }
 
 .upload-form input,
-.upload-form textarea {
+.upload-form textarea,
+.delete-by-name input {
     width: 100%;
     border: none;
     outline: none;
     padding: 14px 16px;
-    border-radius: 10px;
-    background: var(--light-bg, #f3f5f7);
-    font-size: 1rem;
-    color: var(--text-dark, #1e1e1e);
+    border-radius: 12px;
+    background: var(--light-bg);
+    font-size: 1.05rem;
+    color: var(--text-dark);
     font-family: 'Poppins', sans-serif;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
 }
 
 .upload-form textarea {
-    min-height: 120px;
+    min-height: 140px;
     resize: vertical;
 }
 
 .upload-form input:focus,
-.upload-form textarea:focus {
-    background: var(--card-bg, #ffffff);
-    border: 2px solid var(--primary-color, #0b4a46);
-    box-shadow: 0 0 0 4px var(--shadow-color);
+.upload-form textarea:focus,
+.delete-by-name input:focus {
+    background: var(--card-bg);
+    border: 1px solid var(--primary-color);
+    box-shadow: 0 0 0 6px rgba(11,74,70,0.08);
 }
 
 .upload-form input[type="file"] {
-    background: var(--card-bg, #ffffff);
-    padding: 12px;
+    background: var(--card-bg);
+    padding: 14px;
     cursor: pointer;
     border: 2px dashed var(--border-color);
-    border-radius: 10px;
+    border-radius: 12px;
 }
 
 .image-display {
@@ -114,7 +130,7 @@
     height: 180px !important;
     object-fit: cover;
     border-radius: 14px !important;
-    border: 3px solid var(--primary-color, #0b4a46);
+    border: 3px solid var(--primary-color);
     box-shadow: 0 8px 20px var(--shadow-color);
     transition: 0.3s ease;
 }
@@ -130,15 +146,47 @@
     margin-top: 32px;
 }
 
+.delete-by-name {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.delete-by-name input {
+    max-width: 100%;
+    box-shadow: 0 10px 18px rgba(11,74,70,0.05);
+}
+
+.btn-delete-name {
+    width: fit-content;
+    align-self: flex-start;
+    margin-top: 12px;
+    background: #de3b3b;
+    color: white;
+    border-radius: 10px;
+    padding: 14px 20px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(222,59,59,0.18);
+}
+
+.btn-delete-name:hover {
+    background: #c13131;
+    color: white;
+}
+
 .btn {
     flex: 1;
     min-width: 150px;
-    padding: 16px 20px;
+    padding: 18px 22px;
     border: none;
     border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.75px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
@@ -149,7 +197,7 @@
 }
 
 .btn-primary {
-    background: var(--primary-color, #0b4a46);
+    background: var(--primary-color);
     color: white;
     box-shadow: 0 4px 12px var(--shadow-color);
 }
@@ -157,48 +205,173 @@
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px var(--shadow-color);
-    background: var(--accent-color, #d3a42d);
-    color: #0b4a46;
+    background: var(--accent-color);
+    color: var(--primary-color);
 }
 
-.btn-primary:active {
+.btn-primary:active,
+.btn-secondary:active {
     transform: scale(0.98);
 }
 
 .btn-secondary {
-    background: var(--accent-color, #d3a42d);
-    color: #0b4a46;
+    background: var(--accent-color);
+    color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(211, 164, 45, 0.2);
 }
 
 .btn-secondary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(211, 164, 45, 0.3);
-    background: var(--primary-color, #0b4a46);
+    background: var(--primary-color);
     color: white;
 }
 
-.btn-secondary:active {
-    transform: scale(0.98);
+.form-message {
+    margin-top: 18px;
+    color: var(--text-dark);
+    font-size: 1rem;
+    font-weight: 500;
+    border-left: 4px solid var(--accent-color);
+    padding: 12px 16px;
+    background: rgba(211, 164, 45, 0.12);
+    border-radius: 10px;
 }
 
-::placeholder {
-    color: #9ca3af;
-    font-family: 'Poppins', sans-serif;
+.product-management {
+    margin-top: 40px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 26px var(--shadow-color);
+}
+
+.product-management-header {
+    margin-bottom: 24px;
+}
+
+.product-management-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 10px;
+    color: var(--text-dark);
+}
+
+.product-management-header p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
+
+.product-grid-admin {
+    display: grid;
+    gap: 18px;
+}
+
+.product-card {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 18px;
+    align-items: stretch;
+    padding: 18px;
+    border-radius: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 18px var(--shadow-color);
+}
+
+.product-card-image {
+    min-width: 110px;
+    min-height: 110px;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid rgba(11, 74, 70, 0.08);
+    background: var(--light-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.product-card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.product-card-body h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
+.product-card-body p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+.product-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card-price {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.btn-delete {
+    background: #de3b3b;
+    color: white;
+    min-width: 120px;
+}
+
+.btn-delete:hover {
+    background: #c13131;
+    box-shadow: 0 8px 18px rgba(209, 65, 65, 0.2);
+}
+
+.loading-text,
+.empty-text {
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+@media (max-width: 1000px) {
+    .upload-content {
+        max-width: 100%;
+    }
+
+    .product-card {
+        grid-template-columns: 120px 1fr;
+    }
 }
 
 @media (max-width: 768px) {
     .upload-container {
-        padding: 20px;
+        padding: 18px 14px;
     }
 
     .upload-title {
-        font-size: 1.8rem;
-        margin-bottom: 24px;
+        font-size: 1.95rem;
+        margin-bottom: 22px;
     }
 
     .upload-form {
-        padding: 28px;
+        padding: 24px;
     }
 
     .form-group {
@@ -206,84 +379,130 @@
     }
 
     .form-actions {
-        gap: 12px;
+        gap: 14px;
     }
 
     .btn {
         min-width: 120px;
-        padding: 14px 16px;
-        font-size: 0.95rem;
+        padding: 16px 18px;
+        font-size: 1.05rem;
     }
 
     .image-display img {
         width: 140px !important;
         height: 140px !important;
     }
+
+    .product-management {
+        padding: 22px;
+    }
+
+    .product-card {
+        grid-template-columns: 1fr;
+    }
+
+    .product-card-image {
+        min-height: 160px;
+    }
+
+    .product-card-meta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-delete {
+        width: 100%;
+    }
 }
 
-@media (prefers-color-scheme: dark){
-
-    body{
-        background: hsl(220, 17%, 57%);
+@media (max-width: 600px) {
+    .upload-container {
+        padding: 16px 12px;
     }
 
-    .main{
-        background: linear-gradient(
-            135deg,
-            hsl(0, 0%, 50%),
-            hsl(0, 0%, 51%)
-        );
+    .upload-title {
+        font-size: 1.6rem;
+        margin-bottom: 18px;
     }
 
-    h1{
-        color: #f2f2f2;
+    .upload-form {
+        padding: 18px;
+        border-radius: 14px;
     }
 
-    form{
-        background: rgba(22, 28, 34, 0.75);
-        border: 1px solid rgba(255,255,255,0.06);
-        box-shadow:
-            0 10px 35px rgba(0,0,0,0.4);
+    .delete-by-name input,
+    .upload-form input,
+    .upload-form textarea {
+        font-size: 1.1rem;
     }
 
-    label{
-        color: #e9e9e9;
+    .form-actions {
+        flex-direction: column;
     }
 
-    input,
-    textarea{
-        background: #1d242c;
-        color: white;
+    .btn {
+        width: 100%;
+        min-width: 0;
+        padding: 16px 18px;
+        font-size: 1.05rem;
     }
 
-    input:focus,
-    textarea:focus{
-        background: #222b34;
-        border: 2px solid #d6ab2f;
+    .product-management {
+        padding: 18px;
     }
 
-    input[type="file"]{
-        background: #1d242c;
+    .product-grid-admin {
+        grid-template-columns: 1fr;
     }
 
-    ::placeholder{
-        color: #9ba3aa;
+    .product-card {
+        padding: 14px;
     }
 
-    button{
-        background: linear-gradient(
-            135deg,
-            #c9a227,
-            #e0b73d
-        );
-        color: #111;
+    .product-card-image {
+        min-height: 180px;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --light-bg: #071018;
+        --bg: #071018;
+        --card-bg: #0b1220;
+        --primary-color: #7ee3d7;
+        --accent-color: #f3c14a;
+        --text-dark: #e6f7f5;
+        --muted: #9aa6ac;
+        --border-color: rgba(125,220,210,0.06);
+        --shadow-color: rgba(0,0,0,0.6);
     }
 
-    button:hover{
-        background: linear-gradient(
-            135deg,
-            #ddb53c,
-            #f3c74c
-        );
+    body {
+        background: var(--bg);
+    }
+
+    .upload-form,
+    .product-management,
+    .product-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        color: var(--text-dark);
+    }
+
+    .upload-form input,
+    .upload-form textarea,
+    .delete-by-name input {
+        background: #071018;
+        color: var(--text-dark);
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: #052a27;
+    }
+
+    .btn-secondary {
+        background: #1f2937;
+        color: var(--accent-color);
     }
 }

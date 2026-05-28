@@ -16,54 +16,52 @@ const CategoryDisplay = () => {
   const { myCart, setMyCart } = useContext(MyCart);
   const [itemsToDelete, setItemsToDelete] = useState([]);
 
-  const rawApiUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '') : 'https://fivestarhotel.rf.gd/api';
-  const apiUrl = rawApiUrl;
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const imageBaseUrl = rawApiUrl.replace(/\/api$/, '');
+  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || `${baseUrl}api`.replace(/\/+/g, '/');
+  const imageBaseUrl = apiUrl.replace(/\/api$/, '');
 
   const getProductImageUrl = (productPath) => {
     const rawPath = productPath?.toString().trim();
     if (!rawPath) return '';
 
     const normalized = rawPath.replace(/\\/g, '/');
-    // Build a list of likely candidate URLs. We will try these in order on image errors.
     const candidates = [];
 
-    // If it's already an absolute URL, prefer it first
     if (/^https?:\/\//i.test(normalized)) {
       candidates.push(normalized);
       return candidates[0];
     }
 
-    // If it starts with a slash, assume it's root-relative
     if (normalized.startsWith('/')) {
       candidates.push(`${baseUrl}${normalized.replace(/^\/+/, '')}`);
     }
 
-    // If server already returns uploads/ path, use it directly
     if (/^uploads\//i.test(normalized)) {
       candidates.push(`${baseUrl}${normalized.replace(/^\/+/, '')}`);
     }
 
-    // Common server location for stored product images
     candidates.push(`${baseUrl}uploads/products/${encodeURIComponent(normalized)}`);
 
-    // Also try using the raw filename under uploads (in case server stores differently)
     candidates.push(`${baseUrl}uploads/${encodeURIComponent(normalized)}`);
 
-    // Return the first candidate by default; the <img> onError will try the others.
     return candidates[0] || '';
   };
+
+  const placeholderImage = `data:image/svg+xml,%3Csvg width='600' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='600' height='400' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23f3f5f7' font-family='Poppins, sans-serif' font-size='28'%3ENo image available%3C/text%3E%3C/svg%3E`;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${apiUrl}/index.php`);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
+        }
         const data = await response.json();
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching products:', error);
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
@@ -122,15 +120,13 @@ const handleCart = (product) => {
                 <img
                   className="img"
                   loading="lazy"
-                  src={imageUrl || `${baseUrl}projectpics/lightmode.png`}
+                  src={imageUrl || placeholderImage}
                   alt={product.product_name || 'Product image'}
                   onError={(e) => {
                     const src = e.currentTarget.src || '';
-                    // If the src already equals the fallback logo, don't loop
-                    const fallback = `${baseUrl}projectpics/lightmode.png`;
+                    const fallback = placeholderImage;
                     if (src === fallback) return;
 
-                    // If our getProductImageUrl returned a single string, try alternate paths
                     const candidates = [];
                     const rawPath = (product.product_path || '').toString().trim();
                     if (rawPath) {
@@ -142,11 +138,8 @@ const handleCart = (product) => {
                         candidates.push(`${baseUrl}uploads/${encodeURIComponent(normalized)}`);
                       }
                     }
-
-                    // Append the general fallback as last resort
                     candidates.push(fallback);
 
-                    // Find next candidate that's different from current src
                     const next = candidates.find(c => c && c !== src) || fallback;
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = next;

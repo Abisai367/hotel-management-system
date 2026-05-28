@@ -9,6 +9,13 @@ export default function UploadCategories(){
     const [preview, setPreview] = useState(null);
     const [price, setPrice] =useState("")
     const [file, setFile] = useState(null)
+    const [productList, setProductList] = useState([]);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    const [deleteLoading, setDeleteLoading] = useState(null);
+    const [formMessage, setFormMessage] = useState("");
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || `${baseUrl}api`.replace(/\/+/g, '/');
+    const [deleteByName, setDeleteByName] = useState("");
 
     const handleImageChange = (e) => {
         const selectedFile = e.target.files[0]
@@ -34,10 +41,11 @@ export default function UploadCategories(){
         e.preventDefault();
 
         if (!product_name || !description || !price || !file) {
-            alert("Please fill all fields and upload an image");
+            setFormMessage("Please fill all fields and upload an image.");
             return;
         }
 
+        setFormMessage("");
         const formdata = new FormData();
         formdata.append('description', description);
         formdata.append('product_name', product_name);
@@ -45,29 +53,121 @@ export default function UploadCategories(){
         formdata.append('file', file);
 
         try{
-            const apiUrl = import.meta.env.VITE_API_URL || 'https://fivestarhotel.rf.gd/api';
             const response = await fetch(`${apiUrl}/addcategory.php`, {
                 method: 'POST',
                 body: formdata
-        });
-        const data = await response.json();
-        if(data.status === 'success'){
-            alert("Success: " + data.message);
-            setProductName("");
-            setDescription("");
-            setPrice("");
-            setFile(null);
-            setPreview(null);
-        }else{
-            alert(data.message);
-        }
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
+            }
+            const data = await response.json();
+            if(data.status === 'success'){
+                setFormMessage("Product added successfully.");
+                setProductName("");
+                setDescription("");
+                setPrice("");
+                setFile(null);
+                setPreview(null);
+                await fetchProducts();
+            } else {
+                setFormMessage(data.message || 'Unable to save product.');
+            }
         }
         catch(error){
-            alert("Unable to communicate with the server. Please try again later.");
+            console.error(error);
+            setFormMessage("Unable to communicate with the server. Please try again later.");
+        }
+    }
+
+    const fetchProducts = async () => {
+        setIsLoadingProducts(true);
+        try {
+            const response = await fetch(`${apiUrl}/index.php`);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
+            }
+            const data = await response.json();
+            setProductList(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to load products', error);
+            setFormMessage('Unable to load products. Check API path or server status.');
+            setProductList([]);
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    }
+
+    const handleDelete = async (product) => {
+        const confirmed = window.confirm(`Delete ${product.product_name}? This action cannot be undone.`);
+        if (!confirmed) return;
+
+        setDeleteLoading(product.id);
+        try {
+            const response = await fetch(`${apiUrl}/delete.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: product.id, product_path: product.product_path })
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
+            }
+            const result = await response.json();
+            if (result.status === 'success') {
+                await fetchProducts();
+                setFormMessage(`${product.product_name} was deleted successfully.`);
+            } else {
+                setFormMessage(result.message || 'Unable to delete product.');
+            }
+        } catch (error) {
+            console.error(error);
+            setFormMessage('Delete request failed. Please try again later.');
+        } finally {
+            setDeleteLoading(null);
+        }
+    }
+
+    const handleDeleteByName = async (name) => {
+        const trimmedName = name?.trim().toLowerCase();
+        if (!trimmedName) {
+            setFormMessage('Please type a product name to delete.');
+            return;
+        }
+
+        setFormMessage('');
+        setDeleteLoading('by-name');
+        try {
+            const response = await fetch(`${apiUrl}/delete.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_name: trimmedName })
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
+            }
+            const result = await response.json();
+            if (result.status === 'success') {
+                setFormMessage(`${trimmedName} deleted successfully.`);
+                setDeleteByName("");
+                await fetchProducts();
+            } else {
+                setFormMessage(result.message || 'Unable to delete product by name.');
+            }
+        } catch (error) {
+            console.error(error);
+            setFormMessage('Delete request failed. Please try again later.');
+        } finally {
+            setDeleteLoading(null);
         }
     }
 
     useEffect(() => {
+      fetchProducts();
       const sr = ScrollReveal({ reset: false });
       sr.reveal('.upload-title', {
         distance: '30px',
@@ -117,9 +217,74 @@ export default function UploadCategories(){
 
                     <div className="form-actions">
                         <button type="submit" className="btn btn-primary">ADD PRODUCT</button>
-                        <Link to="/categories"><button type="button" className="btn btn-secondary">View Categories</button></Link>
+                        <Link to="/categories" className="btn btn-secondary">View Categories</Link>
                     </div>
+                    {formMessage && <p className="form-message">{formMessage}</p>}
                 </form>
+                <div className="product-management">
+                    <div className="product-management-header">
+                        <h2>Admin Product Management</h2>
+                        <p>Delete products directly from the add product page.</p>
+                        <div className="delete-by-name">
+                            <label htmlFor="delete-by-name-input">Delete by product name</label>
+                            <input
+                                id="delete-by-name-input"
+                                type="text"
+                                placeholder="Type product name to delete"
+                                value={deleteByName}
+                                onChange={(e) => setDeleteByName(e.target.value.toLowerCase())}
+                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleDeleteByName(deleteByName); } }}
+                            />
+                            {deleteByName.trim().length > 0 && (
+                                <button
+                                    type="button"
+                                    className="btn btn-delete-name"
+                                    onClick={() => handleDeleteByName(deleteByName)}
+                                    disabled={deleteLoading === 'by-name'}
+                                >
+                                    {deleteLoading === 'by-name' ? 'Deleting...' : 'Delete product'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    {isLoadingProducts ? (
+                        <p className="loading-text">Loading products...</p>
+                    ) : (
+                        <div className="product-grid-admin">
+                            {productList.length === 0 ? (
+                                <p className="empty-text">No products available yet.</p>
+                            ) : (
+                                productList.map((product) => (
+                                    <div className="product-card" key={product.id || product.product_name}>
+                                        <div className="product-card-image">
+                                            <img
+                                                src={product.product_path ? `${baseUrl}uploads/products/${encodeURIComponent(product.product_path)}` : ''}
+                                                alt={product.product_name}
+                                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`; }}
+                                            />
+                                        </div>
+                                        <div className="product-card-body">
+                                            <div>
+                                                <h3>{product.product_name}</h3>
+                                                <p>{product.description}</p>
+                                            </div>
+                                            <div className="product-card-meta">
+                                                <span className="card-price">Kshs. {product.price}</span>
+                                                <button
+                                                    className="btn btn-delete"
+                                                    onClick={() => handleDelete(product)}
+                                                    disabled={deleteLoading === product.id}
+                                                >
+                                                    {deleteLoading === product.id ? 'Deleting...' : 'Delete'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
