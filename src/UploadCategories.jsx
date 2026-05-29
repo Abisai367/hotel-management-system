@@ -25,9 +25,10 @@ export default function UploadCategories(){
                 throw new Error(`Failed to fetch products: ${response.statusText}`);
             }
             const data = await response.json();
-            setProductList(data || []);
+            setProductList(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching products:', error);
+            setProductList([]);
             setFormMessage('Failed to load products. Please refresh the page.');
         } finally {
             setIsLoadingProducts(false);
