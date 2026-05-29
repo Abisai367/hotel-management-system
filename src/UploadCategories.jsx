@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import './UploadCategories.css'
 import { Link } from "react-router-dom";
 import ScrollReveal from "scrollreveal";
-
 export default function UploadCategories(){
     const [product_name, setProductName] = useState("");
     const [description, setDescription] = useState("");   
@@ -15,7 +14,25 @@ export default function UploadCategories(){
     const [formMessage, setFormMessage] = useState("");
     const baseUrl = import.meta.env.BASE_URL || '/';
     const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || `${baseUrl}api`.replace(/\/+/g, '/');
+    const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
     const [deleteByName, setDeleteByName] = useState("");
+
+    const fetchProducts = async () => {
+        try {
+            setIsLoadingProducts(true);
+            const response = await fetch(`${apiUrl}/index.php`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch products: ${response.statusText}`);
+            }
+            const data = await response.json();
+            setProductList(data || []);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            setFormMessage('Failed to load products. Please refresh the page.');
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    };
 
     const handleImageChange = (e) => {
         const selectedFile = e.target.files[0]
@@ -36,7 +53,7 @@ export default function UploadCategories(){
     const productPrice = (e) =>{
         setPrice(e.target.value)
     }
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -45,14 +62,44 @@ export default function UploadCategories(){
             return;
         }
 
-        setFormMessage("");
+        setFormMessage("Uploading image to cloud storage...");
+        
+        let uploadedImageUrl = "";
+
+        try {
+            const cloudinaryData = new FormData();
+            cloudinaryData.append("file", file);
+            cloudinaryData.append("upload_preset", "hotel_preset"); 
+
+            const cloudinaryEndpoint = `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`;
+
+            const cloudinaryResponse = await fetch(cloudinaryEndpoint, { 
+                method: "POST", 
+                body: cloudinaryData 
+            });
+
+            if (!cloudinaryResponse.ok) {
+                const errorText = await cloudinaryResponse.text();
+                throw new Error(errorText || "Cloudinary upload rejected.");
+            }
+
+            const cloudJson = await cloudinaryResponse.json();
+            uploadedImageUrl = cloudJson.secure_url; 
+        } catch (cloudErr) {
+            console.error(cloudErr);
+            setFormMessage(`Image cloud storage failed: ${cloudErr.message}`);
+            return;
+        }
+
+        setFormMessage("Saving product details to database...");
+
         const formdata = new FormData();
         formdata.append('description', description);
         formdata.append('product_name', product_name);
         formdata.append('price', price);
-        formdata.append('file', file);
+        formdata.append('file_url', uploadedImageUrl); 
 
-        try{
+        try {
             const response = await fetch(`${apiUrl}/addcategory.php`, {
                 method: 'POST',
                 body: formdata
@@ -77,25 +124,6 @@ export default function UploadCategories(){
         catch(error){
             console.error(error);
             setFormMessage("Unable to communicate with the server. Please try again later.");
-        }
-    }
-
-    const fetchProducts = async () => {
-        setIsLoadingProducts(true);
-        try {
-            const response = await fetch(`${apiUrl}/index.php`);
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`Server error: ${response.status} ${response.statusText} ${text}`);
-            }
-            const data = await response.json();
-            setProductList(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Failed to load products', error);
-            setFormMessage('Unable to load products. Check API path or server status.');
-            setProductList([]);
-        } finally {
-            setIsLoadingProducts(false);
         }
     }
 
@@ -258,7 +286,7 @@ export default function UploadCategories(){
                                     <div className="product-card" key={product.id || product.product_name}>
                                         <div className="product-card-image">
                                             <img
-                                                src={product.product_path ? `${baseUrl}uploads/products/${encodeURIComponent(product.product_path)}` : ''}
+                                                src={product.product_path || ''}
                                                 alt={product.product_name}
                                                 onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`; }}
                                             />
