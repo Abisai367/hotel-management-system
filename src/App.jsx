@@ -16,6 +16,9 @@ function App() {
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [auth, setAuth] = useState(() => !!localStorage.getItem('user_role'));
+  const [loading, setLoading] = useState(false);
+  const [roleLoaded, setRoleLoaded] = useState(!!localStorage.getItem('user_role'));
+  const maxRetries = 15;
 
   useEffect(() => {
     localStorage.setItem('myCart', JSON.stringify(myCart));
@@ -23,13 +26,56 @@ function App() {
 
   useEffect(() => {
     const onAuthChange = () => {
-      setAuth(!!localStorage.getItem('user_role'));
+      const role = localStorage.getItem('user_role');
+      const hasRole = Boolean(role && role.trim());
+      setAuth(hasRole);
+      setRoleLoaded(hasRole);
+      if (!hasRole) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+
+      let attempts = 0;
+      const roleCheckInterval = setInterval(() => {
+        const currentRole = localStorage.getItem('user_role');
+        if (currentRole && currentRole.trim()) {
+          setRoleLoaded(true);
+          setLoading(false);
+          clearInterval(roleCheckInterval);
+        } else if (attempts >= maxRetries) {
+          setLoading(false);
+          clearInterval(roleCheckInterval);
+        }
+        attempts++;
+      }, 200);
     };
     window.addEventListener('authchange', onAuthChange);
     return () => window.removeEventListener('authchange', onAuthChange);
   }, []);
 
-  const isAuthenticated = () => auth;
+  // Auto-refresh check on mount
+  useEffect(() => {
+    if (auth && !roleLoaded) {
+      setLoading(true);
+      let attempts = 0;
+      const interval = setInterval(() => {
+        const role = localStorage.getItem('user_role');
+        if (role && role.trim()) {
+          setRoleLoaded(true);
+          setLoading(false);
+          clearInterval(interval);
+        } else if (attempts >= maxRetries) {
+          setLoading(false);
+          clearInterval(interval);
+        }
+        attempts++;
+      }, 200);
+      return () => clearInterval(interval);
+    }
+  }, [auth, roleLoaded]);
+
+  const isAuthenticated = () => auth && roleLoaded;
   const isAdminOrEmployee = () => {
     const role = localStorage.getItem('user_role');
     return role === 'Admin' || role === 'admin' || role === 'Employee' || role === 'Supervisor';
@@ -42,27 +88,34 @@ function App() {
   return (
     <MyCart.Provider value={{ myCart, setMyCart }}>
       <Router>
-        <div className="app-layout">
-          {isAuthenticated() && <Sidebar />}
-          <main className="main-content">
-            <Routes>
-              <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/categories" replace />} />
-              <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to="/categories" replace />} />
-              <Route path="/" element={<Navigate to="/categories" replace />} />
-              <Route path="/categories" element={<CategoriesDisplay />} />
-              <Route path="/MyCart" element={<Mycart />} />
-              <Route 
-                path="/upload" 
-                element={isAuthenticated() && isStrictAdmin() ? <UploadCategories /> : <Navigate to="/login" />} 
-              />
-              <Route 
-                path="/add-employee" 
-                element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
-              />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </main>
-        </div>
+        {(loading || (auth && !roleLoaded)) ? (
+          <div className="app-loading-screen">
+            <div className="loading-spinner"></div>
+            <p className="loading-text">Loading your privileges...</p>
+          </div>
+        ) : (
+          <div className="app-layout">
+            {isAuthenticated() && <Sidebar />}
+            <main className="main-content">
+              <Routes>
+                <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/categories" replace />} />
+                <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to="/categories" replace />} />
+                <Route path="/" element={<Navigate to="/categories" replace />} />
+                <Route path="/categories" element={<CategoriesDisplay />} />
+                <Route path="/MyCart" element={<Mycart />} />
+                <Route 
+                  path="/upload" 
+                  element={isAuthenticated() && isStrictAdmin() ? <UploadCategories /> : <Navigate to="/login" />} 
+                />
+                <Route 
+                  path="/add-employee" 
+                  element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
+                />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </main>
+          </div>
+        )}
       </Router>
     </MyCart.Provider>
   );

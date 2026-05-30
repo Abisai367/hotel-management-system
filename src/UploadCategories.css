@@ -30,7 +30,7 @@
 }
 
 .upload-title {
-    font-size: 2.2rem;
+    font-size: 32pt;
     font-weight: 700;
     letter-spacing: 2px;
     margin-bottom: 32px;
@@ -57,7 +57,7 @@
 .delete-by-name label {
     display: block;
     margin-bottom: 12px;
-    font-size: 1rem;
+    font-size: 16pt;
     font-weight: 600;
     color: var(--text-dark);
     transition: 0.3s ease;
@@ -77,7 +77,7 @@
     padding: 14px 16px;
     border-radius: 12px;
     background: var(--light-bg);
-    font-size: 1.05rem;
+    font-size: 15pt;
     color: var(--text-dark);
     font-family: 'Poppins', sans-serif;
     transition: all 0.3s ease;
@@ -167,7 +167,7 @@
     border-radius: 10px;
     padding: 14px 20px;
     border: none;
-    font-size: 1rem;
+    font-size: 16pt;
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(222,59,59,0.18);
@@ -184,7 +184,7 @@
     padding: 18px 22px;
     border: none;
     border-radius: 10px;
-    font-size: 1.05rem;
+    font-size: 17pt;
     font-weight: 700;
     letter-spacing: 0.75px;
     cursor: pointer;
@@ -230,7 +230,7 @@
 .form-message {
     margin-top: 18px;
     color: var(--text-dark);
-    font-size: 1rem;
+    font-size: 16pt;
     font-weight: 500;
     border-left: 4px solid var(--accent-color);
     padding: 12px 16px;
@@ -252,7 +252,7 @@
 }
 
 .product-management-header h2 {
-    font-size: 1.75rem;
+    font-size: 24pt;
     margin-bottom: 10px;
     color: var(--text-dark);
 }
@@ -261,7 +261,7 @@
     margin: 0;
     color: var(--muted);
     line-height: 1.7;
-    font-size: 1.05rem;
+    font-size: 15pt;
 }
 
 .delete-admin-toolbar {
@@ -323,7 +323,7 @@
 
 .product-card-body h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 16pt;
     color: var(--text-dark);
 }
 
@@ -331,7 +331,7 @@
     margin: 0;
     color: var(--muted);
     line-height: 1.5;
-    font-size: 1rem;
+    font-size: 16pt;
 }
 
 .product-card-meta {
@@ -361,7 +361,7 @@
 .loading-text,
 .empty-text {
     color: var(--muted);
-    font-size: 1rem;
+    font-size: 16pt;
 }
 
 @media (max-width: 1000px) {
@@ -380,7 +380,7 @@
     }
 
     .upload-title {
-        font-size: 1.95rem;
+        font-size: 26pt;
         margin-bottom: 22px;
     }
 
@@ -399,7 +399,7 @@
     .btn {
         min-width: 120px;
         padding: 16px 18px;
-        font-size: 1.05rem;
+        font-size: 15pt;
     }
 
     .image-display img {
@@ -435,7 +435,7 @@
     }
 
     .upload-title {
-        font-size: 1.6rem;
+        font-size: 22pt;
         margin-bottom: 18px;
     }
 
@@ -447,7 +447,7 @@
     .delete-by-name input,
     .upload-form input,
     .upload-form textarea {
-        font-size: 1.1rem;
+        font-size: 16pt;
     }
 
     .form-actions {
@@ -458,7 +458,7 @@
         width: 100%;
         min-width: 0;
         padding: 16px 18px;
-        font-size: 1.05rem;
+        font-size: 15pt;
     }
 
     .product-management {

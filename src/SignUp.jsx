@@ -91,7 +91,11 @@ export default function SignUp() {
 
       if (data.status === 'success') {
         alert('Account created successfully! Redirecting to login...');
-        navigate('/login');
+        localStorage.setItem('user_role', 'customer');
+        localStorage.setItem('full_name', fullName);
+        localStorage.setItem('profile_image', uploadedProfileUrl || '');
+        window.dispatchEvent(new Event('authchange'));
+        navigate('/categories', { replace: true });
       } else {
         setFormMessage(data.message || 'Unable to register account.');
       }

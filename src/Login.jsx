@@ -45,6 +45,7 @@ export default function Login() {
         localStorage.setItem('full_name', data.user.full_name);
         localStorage.setItem('profile_image', data.user.profile_image_url || '');
         localStorage.setItem('shift_schedule', data.user.shift_schedule || '');
+        window.dispatchEvent(new Event('authchange'));
 
         navigate('/categories', { replace: true });
       } else {

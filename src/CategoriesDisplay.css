@@ -49,7 +49,7 @@
 .social-icon {
     width: 58px;
     height: 58px;
-    font-size: 1.4rem;
+    font-size: 20pt;
 }
 
 .skeleton-grid {
@@ -110,7 +110,7 @@
     text-align: center;
     color: var(--text-light, #475569);
     padding: 48px 20px;
-    font-size: 1.1rem;
+    font-size: 18pt;
 }
 
 @keyframes shimmer {
@@ -127,7 +127,7 @@
 }
 
 .category-title {
-    font-size: 2.5rem;
+    font-size: 40pt;
     font-weight: 700;
     letter-spacing: 2px;
     margin-bottom: 20px;
@@ -159,8 +159,9 @@
 .guest-cta p {
     margin: 0;
     color: var(--text-dark, #0f172a);
-    font-size: 1rem;
+    font-size: 18pt;
     line-height: 1.8;
+    font-weight: 500;
 }
 
 .guest-cta-buttons {
@@ -227,7 +228,7 @@
 }
 
 .product-name {
-    font-size: 1.3rem;
+    font-size: 22pt;
     font-weight: 700;
     margin-bottom: 8px;
     color: var(--text-dark, #111827);
@@ -236,7 +237,7 @@
 }
 
 .product-description {
-    font-size: 0.9rem;
+    font-size: 16pt;
     color: var(--text-light, #6b7280);
     line-height: 1.6;
     margin-bottom: 14px;
@@ -254,19 +255,19 @@
 
 .product-price {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 20pt;
     color: var(--primary-color, #0b4a46);
     letter-spacing: 0.5px;
 }
 
 .add-to-cart {
-    padding: 10px 16px;
+    padding: 12px 18px;
     border-radius: 8px;
     border: none;
     background: var(--primary-color, #0b4a46);
     color: white;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 16pt;
     cursor: pointer;
     transition: all 0.3s ease;
     flex-shrink: 0;
@@ -285,10 +286,10 @@
 }
 
 .btn {
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 17pt;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -321,7 +322,7 @@
 .loading {
     text-align: center;
     padding: 60px 20px;
-    font-size: 1.2rem;
+    font-size: 18pt;
     color: var(--text-light, #6b7280);
 }
 
@@ -331,7 +332,7 @@
     }
 
     .category-title {
-        font-size: 1.8rem;
+        font-size: 29pt;
         margin-bottom: 16px;
     }
 
@@ -351,7 +352,7 @@
     }
 
     .product-name {
-        font-size: 1.1rem;
+        font-size: 19pt;
     }
 
     .category-actions {
@@ -359,44 +360,43 @@
     }
 
     .btn {
-        padding: 10px 18px;
-        font-size: 0.9rem;
+        padding: 12px 20px;
+        font-size: 16pt;
     }
 }
 
-.add-to-cart {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 18px;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 18px;
-    background: #111827;
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.25s ease, background 0.25s ease, opacity 0.25s ease;
-}
+/* Tablet/Mid-screen responsive breakpoint */
+@media (max-width: 850px) {
+    .categories-container {
+        padding: 24px;
+    }
 
-.add-to-cart:hover:not(:disabled) {
-    background: var(--hover-color);
-    transform: translateY(-2px);
-}
+    .category-title {
+        font-size: 34pt;
+        margin-bottom: 18px;
+    }
 
-.add-to-cart:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 22px;
+    }
 
-.product-item:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(223, 178, 57, 0.24);
-    border-color: var(--hover-color);
+    .product-name {
+        font-size: 19pt;
+    }
+
+    .product-description {
+        font-size: 15pt;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 16pt;
+    }
 }
 
 li::before{
+
     content: '';
     position: absolute;
     top: -80px;
@@ -413,7 +413,7 @@ li::before{
     }
 
     .category-title {
-        font-size: 1.7rem;
+        font-size: 24pt;
         margin-bottom: 16px;
         text-align: center;
     }
@@ -445,15 +445,15 @@ li::before{
     }
 
     .product-name {
-        font-size: 1.2rem;
+        font-size: 19pt;
     }
 
     .product-description {
-        font-size: 1rem;
+        font-size: 16pt;
     }
 
     .product-price {
-        font-size: 1rem;
+        font-size: 18pt;
     }
 }
 
@@ -507,7 +507,7 @@ li::before{
     }
 
     .category-title {
-        font-size: 1.6rem;
+        font-size: 24pt;
         text-align: center;
         margin-bottom: 12px;
     }
@@ -539,7 +539,8 @@ li::before{
         height: 180px;
     }
 
-    .product-name { font-size: 1.15rem; }
-    .product-description { font-size: 0.95rem; }
-    .product-price { font-size: 1rem; }
+    .product-name { font-size: 19pt; }
+    .product-description { font-size: 16pt; }
+    .product-price { font-size: 18pt; }
+    .add-to-cart { font-size: 15pt; }
 }

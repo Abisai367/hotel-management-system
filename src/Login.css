@@ -50,12 +50,12 @@ body {
 }
 
 .login-title {
-  font-size: clamp(2rem, 1.8vw, 2.4rem);
+  font-size: clamp(24pt, 1.8vw, 28pt);
   margin-bottom: 10px;
 }
 
 .login-subtitle {
-  font-size: 0.95rem;
+  font-size: 15pt;
   color: var(--muted);
   line-height: 1.6;
   margin-bottom: 28px;
@@ -106,12 +106,12 @@ body {
 
 .login-btn {
   width: 100%;
-  padding: 15px 16px;
+  padding: 16px 18px;
   border-radius: 16px;
   border: none;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 17pt;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -126,20 +126,26 @@ body {
   cursor: not-allowed;
 }
 
-.login-footer {
-  margin-top: 20px;
-  font-size: 0.95rem;
-  color: var(--muted);
-  text-align: center;
-}
+@media (max-width: 850px) {
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 28px;
+  }
 
-.login-footer a {
-  color: var(--primary);
-  font-weight: 700;
-}
+  .login-form {
+    gap: 18px;
+  }
 
-.login-footer a:hover {
-  text-decoration: underline;
+  .form-group label {
+    font-size: 17pt;
+    font-weight: 700;
+  }
+
+  .form-group input {
+    padding: 16px 18px;
+    font-size: 17pt;
+  }
 }
 
 @media (max-width: 600px) {
