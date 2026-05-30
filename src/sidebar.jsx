@@ -67,11 +67,15 @@ export default function Sidebar() {
     <>
       <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <img
-            src={user.profileImage}
-            alt="User avatar"
-            className="sidebar-logo"
-          />
+          {user.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt="User avatar"
+              className="sidebar-logo"
+            />
+          ) : (
+            <div className="sidebar-logo-placeholder" />
+          )}
           <div className="sidebar-title">
             <span className="title-main">{user.fullName ? user.fullName.split(' ')[0] : 'Welcome'}</span>
             <span className="title-sub">{isAdmin ? 'Administrator' : 'Customer'}</span>
@@ -100,11 +104,15 @@ export default function Sidebar() {
         <div className="sidebar-user-actions">
           <div className="sidebar-user-block">
             <div className="sidebar-user-avatar-wrapper">
-              <img
-                className="sidebar-user-avatar"
-                src={user.profileImage}
-                alt="User profile"
-              />
+              {user.profileImage ? (
+                <img
+                  className="sidebar-user-avatar"
+                  src={user.profileImage}
+                  alt="User profile"
+                />
+              ) : (
+                <div className="sidebar-user-avatar placeholder" />
+              )}
             </div>
             <div>
               <p className="sidebar-user-name">{user.fullName || 'Guest User'}</p>

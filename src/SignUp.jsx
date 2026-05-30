@@ -93,7 +93,10 @@ export default function SignUp() {
         alert('Account created successfully! Redirecting to login...');
         localStorage.setItem('user_role', 'customer');
         localStorage.setItem('full_name', fullName);
-        localStorage.setItem('profile_image', uploadedProfileUrl || '');
+        // Prevent storing the hotel's generic projectpics avatar as a user profile image.
+        const sanitizedUploaded = (uploadedProfileUrl || '').trim();
+        const profileToStore = (sanitizedUploaded && !sanitizedUploaded.includes('projectpics')) ? sanitizedUploaded : '';
+        localStorage.setItem('profile_image', profileToStore);
         window.dispatchEvent(new Event('authchange'));
         navigate('/categories', { replace: true });
       } else {
