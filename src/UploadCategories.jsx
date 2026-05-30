@@ -301,7 +301,6 @@ export default function UploadCategories(){
                                                 <img
                                                     src={product.product_path || ''}
                                                     alt={product.product_name}
-                                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`; }}
                                                 />
                                             </div>
                                             <div className="product-card-body">

@@ -68,7 +68,7 @@ export default function Sidebar() {
       <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <img
-            src={user.profileImage || (isDark ? `${baseUrl}projectpics/darkmode.jpg` : `${baseUrl}projectpics/lightmode.png`)}
+            src={user.profileImage}
             alt="User avatar"
             className="sidebar-logo"
           />
@@ -102,7 +102,7 @@ export default function Sidebar() {
             <div className="sidebar-user-avatar-wrapper">
               <img
                 className="sidebar-user-avatar"
-                src={user.profileImage || `${baseUrl}projectpics/lightmode.png`}
+                src={user.profileImage}
                 alt="User profile"
               />
             </div>

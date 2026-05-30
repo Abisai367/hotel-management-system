@@ -172,14 +172,10 @@ export default function Mycart() {
               const subtotal = price * Number(item.quantity || 1);
               return (
                 <li className="cart-item" key={`${item.product_name}-${index}`}>
-                  <div className="item-media">
+                    <div className="item-media">
                     <img
-                      src={item.product_path || `${baseUrl}projectpics/lightmode.png`}
+                      src={item.product_path}
                       alt={item.product_name}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = `${baseUrl}projectpics/lightmode.png`;
-                      }}
                     />
                   </div>
                   <div className="item-info">
