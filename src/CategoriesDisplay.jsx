@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import './CategoriesDisplay.css';
-import { Link } from "react-router-dom";
 import { MyCart } from "./CartContext";
+import {FaFacebook, FaTwitter, FaInstagram} from 'react-icons/fa';
 
 const capitalizeFirstWord = (value) => {
   if (!value || typeof value !== 'string') return "";
@@ -13,10 +14,13 @@ const capitalizeFirstWord = (value) => {
 const CategoryDisplay = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [authNotice, setAuthNotice] = useState('');
   const { myCart, setMyCart } = useContext(MyCart);
+  const navigate = useNavigate();
 
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || `${baseUrl}api`.replace(/\/+/g, '/');
+  const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
+  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
 
   const getProductImageUrl = (productPath) => {
     const rawPath = productPath?.toString().trim();
@@ -52,7 +56,22 @@ const CategoryDisplay = () => {
     );
   };
 
+  const isAuthenticated = () => Boolean(localStorage.getItem('user_role'));
+  const isAdmin = () => localStorage.getItem('user_role')?.toLowerCase() === 'admin';
+
   const handleCart = (product) => {
+    if (!isAuthenticated()) {
+      const proceed = window.confirm(
+        'You must be logged in to add items to cart. Continue to login screen?'
+      );
+      if (proceed) {
+        navigate('/login');
+      } else {
+        setAuthNotice('You cannot add items to cart until you login.');
+      }
+      return;
+    }
+
     const newProduct = {
       product_name: product.product_name,
       description: product.description,
@@ -82,12 +101,37 @@ const CategoryDisplay = () => {
         <h1 className="category-title">PRODUCTS</h1>
         <div className="category-actions">
           <Link to="/MyCart"><button className="btn btn-primary">My Cart</button></Link>
-          <Link to="/upload"><button className="btn btn-secondary">Add Product</button></Link>
+          {isAdmin() && (
+            <Link to="/upload"><button className="btn btn-secondary">Add Product</button></Link>
+          )}
         </div>
       </div>
+      {!isAuthenticated() && (
+        <div className="guest-cta">
+          <p>Sign up or login to enjoy our services and save items to your cart.</p>
+          <div className="guest-cta-buttons">
+            <Link to="/register" className="btn btn-secondary">Sign Up</Link>
+            <Link to="/login" className="btn btn-primary">Log In</Link>
+          </div>
+        </div>
+      )}
+      {authNotice && <div className="auth-notice">{authNotice}</div>}
       {isLoading ? (
-        <div className="loading">Loading products...</div>
-      ) : (
+        <ul className="products-grid skeleton-grid" aria-busy="true" aria-label="Loading products">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <li className="product-item skeleton-card" key={`skeleton-${index}`}>
+              <div className="skeleton-image" />
+              <div className="skeleton-line short" />
+              <div className="skeleton-line medium" />
+              <div className="skeleton-line" />
+              <div className="product-footer">
+                <div className="skeleton-line tiny" />
+                <div className="skeleton-line button" />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : products.length > 0 ? (
         <ul className="products-grid">
           {products.map((product, index) => {
             const imageUrl = getProductImageUrl(product.product_path);
@@ -119,9 +163,27 @@ const CategoryDisplay = () => {
             );
           })}
         </ul>
+      ) : (
+        <div className="no-results">No products found. Please check back later.</div>
       )}
+      <div className="categories-footer">
+        <hr className="footer-divider" />
+        <p>Follow us on our social media platforms</p>
+        <div className="social-icons">
+          <a href="https://www.facebook.com/Joe Dickson" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <FaFacebook className="social-icon" />
+          </a>
+          <a href="https://www.twitter.com/@DicksonAbisai" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+            <FaTwitter className="social-icon" />
+          </a>
+          <a href="https://www.instagram.com/abisai.dickson" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <FaInstagram className="social-icon" />
+          </a>
+        </div>
+        <p>&copy; {new Date().getFullYear()} Hotel Management System. All rights reserved.</p>
+      </div>
     </div>
   );
-};
+}
 
 export default CategoryDisplay;

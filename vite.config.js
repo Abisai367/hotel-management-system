@@ -12,10 +12,22 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/hotel-management-system/api': {
+        target: 'http://localhost/hotel%20management%20system',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/hotel-management-system/, ''),
+      },
       '/uploads': {
         target: 'http://localhost/hotel%20management%20system',
         changeOrigin: true,
         secure: false,
+      },
+      '/hotel-management-system/uploads': {
+        target: 'http://localhost/hotel%20management%20system',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/hotel-management-system/, ''),
       },
     },
   },

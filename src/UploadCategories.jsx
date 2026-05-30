@@ -11,9 +11,11 @@ export default function UploadCategories(){
     const [productList, setProductList] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [deleteLoading, setDeleteLoading] = useState(null);
+    const [showDeletePane, setShowDeletePane] = useState(false);
     const [formMessage, setFormMessage] = useState("");
     const baseUrl = import.meta.env.BASE_URL || '/';
-    const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || `${baseUrl}api`.replace(/\/+/g, '/');
+    const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
+    const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
     const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
     const [deleteByName, setDeleteByName] = useState("");
 
@@ -276,42 +278,55 @@ export default function UploadCategories(){
                             )}
                         </div>
                     </div>
-                    {isLoadingProducts ? (
-                        <p className="loading-text">Loading products...</p>
+                    <div className="delete-admin-toolbar">
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setShowDeletePane((prev) => !prev)}
+                        >
+                            {showDeletePane ? 'Hide delete selection' : 'Select item to delete'}
+                        </button>
+                    </div>
+                    {showDeletePane ? (
+                        isLoadingProducts ? (
+                            <p className="loading-text">Loading products...</p>
+                        ) : (
+                            <div className="product-grid-admin">
+                                {productList.length === 0 ? (
+                                    <p className="empty-text">No products available yet.</p>
+                                ) : (
+                                    productList.map((product) => (
+                                        <div className="product-card" key={product.id || product.product_name}>
+                                            <div className="product-card-image">
+                                                <img
+                                                    src={product.product_path || ''}
+                                                    alt={product.product_name}
+                                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`; }}
+                                                />
+                                            </div>
+                                            <div className="product-card-body">
+                                                <div>
+                                                    <h3>{product.product_name}</h3>
+                                                    <p>{product.description}</p>
+                                                </div>
+                                                <div className="product-card-meta">
+                                                    <span className="card-price">Kshs. {product.price}</span>
+                                                    <button
+                                                        className="btn btn-delete"
+                                                        onClick={() => handleDelete(product)}
+                                                        disabled={deleteLoading === product.id}
+                                                    >
+                                                        {deleteLoading === product.id ? 'Deleting...' : 'Delete'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )
                     ) : (
-                        <div className="product-grid-admin">
-                            {productList.length === 0 ? (
-                                <p className="empty-text">No products available yet.</p>
-                            ) : (
-                                productList.map((product) => (
-                                    <div className="product-card" key={product.id || product.product_name}>
-                                        <div className="product-card-image">
-                                            <img
-                                                src={product.product_path || ''}
-                                                alt={product.product_name}
-                                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `${baseUrl}projectpics/lightmode.png`; }}
-                                            />
-                                        </div>
-                                        <div className="product-card-body">
-                                            <div>
-                                                <h3>{product.product_name}</h3>
-                                                <p>{product.description}</p>
-                                            </div>
-                                            <div className="product-card-meta">
-                                                <span className="card-price">Kshs. {product.price}</span>
-                                                <button
-                                                    className="btn btn-delete"
-                                                    onClick={() => handleDelete(product)}
-                                                    disabled={deleteLoading === product.id}
-                                                >
-                                                    {deleteLoading === product.id ? 'Deleting...' : 'Delete'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                        <p className="admin-help-text">Click the button above to select an item to delete from the list.</p>
                     )}
                 </div>
             </div>

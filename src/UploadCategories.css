@@ -264,6 +264,20 @@
     font-size: 1.05rem;
 }
 
+.delete-admin-toolbar {
+    margin: 20px 0;
+}
+
+.admin-help-text {
+    margin: 0;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: rgba(11, 74, 70, 0.06);
+    color: var(--muted);
+    line-height: 1.7;
+    border: 1px solid rgba(11, 74, 70, 0.1);
+}
+
 .product-grid-admin {
     display: grid;
     gap: 18px;
