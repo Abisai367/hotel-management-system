@@ -173,11 +173,12 @@ export default function Mycart() {
               return (
                 <li className="cart-item" key={`${item.product_name}-${index}`}>
                     <div className="item-media">
-                    <img
-                      src={item.product_path}
-                      alt={item.product_name}
-                    />
-                  </div>
+                      {item.product_path ? (
+                        <img src={item.product_path} alt={item.product_name} />
+                      ) : (
+                        <div className="product-image-placeholder" aria-hidden="true" />
+                      )}
+                    </div>
                   <div className="item-info">
                     <div className="item-top">
                       <div>

@@ -298,10 +298,11 @@ export default function UploadCategories(){
                                     productList.map((product) => (
                                         <div className="product-card" key={product.id || product.product_name}>
                                             <div className="product-card-image">
-                                                <img
-                                                    src={product.product_path || ''}
-                                                    alt={product.product_name}
-                                                />
+                                                {product.product_path ? (
+                                                    <img src={product.product_path} alt={product.product_name} />
+                                                ) : (
+                                                    <div className="product-image-placeholder" aria-hidden="true" />
+                                                )}
                                             </div>
                                             <div className="product-card-body">
                                                 <div>
