@@ -49,6 +49,9 @@ export default function Sidebar() {
     localStorage.removeItem('full_name');
     localStorage.removeItem('profile_image');
     localStorage.removeItem('shift_schedule');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('myCart');
+    localStorage.removeItem('cartItems');
     window.dispatchEvent(new Event('authchange'));
     navigate('/login', { replace: true });
   };

@@ -4,7 +4,7 @@ import './SignUp.css';
 
 export default function AddEmployee() {
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Employee'); 
   const [shiftSchedule, setShiftSchedule] = useState('');
@@ -37,7 +37,7 @@ export default function AddEmployee() {
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
 
-    if (!fullName || !email || !password || !role || !shiftSchedule) {
+    if (!fullName || !phone || !password || !role || !shiftSchedule) {
       setFormMessage('Please fill all required fields.');
       return;
     }
@@ -78,7 +78,7 @@ export default function AddEmployee() {
 
     const employeeData = new FormData();
     employeeData.append('full_name', fullName);
-    employeeData.append('email', email);
+    employeeData.append('phone', phone);
     employeeData.append('password', password);
     employeeData.append('role', role);
     employeeData.append('shift_schedule', shiftSchedule);
@@ -100,7 +100,7 @@ export default function AddEmployee() {
       if (data.status === 'success') {
         alert(`Successfully registered ${fullName} as a ${role}!`);
         setFullName('');
-        setEmail('');
+        setPhone('');
         setPassword('');
         setRole('Employee');
         setShiftSchedule('');
@@ -138,13 +138,13 @@ export default function AddEmployee() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Work Email Address <span className="required">*</span></label>
+            <label htmlFor="phone">Work Phone Number <span className="required">*</span></label>
             <input
-              type="email"
-              id="email"
-              placeholder="e.g. joy@hotel.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="tel"
+              id="phone"
+              placeholder="e.g. 08012345678"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>

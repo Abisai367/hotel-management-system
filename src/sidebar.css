@@ -120,7 +120,8 @@
 }
 
 .sidebar-user-actions {
-    display: none;
+    display: block;
+    margin-top: 20px;
 }
 
 .sidebar-user-block {
@@ -287,7 +288,7 @@
         font-size: 16px;
     }
 
-    /* Hide nav and footer in compact mode */
+    /* Hide nav and profile/logout block in compact mode until sidebar is opened */
     .sidebar:not(.open) .sidebar-nav,
     .sidebar:not(.open) .sidebar-user-actions,
     .sidebar:not(.open) .sidebar-footer {
@@ -379,7 +380,13 @@
         font-size: 14pt;
         color: rgba(255, 255, 255, 0.72);
     }
-}
+
+    .sidebar-account-btn,
+    .sidebar-logout-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 12px 14px;
         color: #ffffff;
         background: rgba(255, 255, 255, 0.08);
         cursor: pointer;
