@@ -57,6 +57,7 @@ export default function Sidebar() {
   };
 
   const baseUrl = import.meta.env.BASE_URL || '/';
+  const defaultProfile = 'https://res.cloudinary.com/dmae5wpe9/image/upload/v1780127792/esi53lgjgdwvr9jcbno4.png';
   const isAdmin = user.role.toLowerCase() === 'admin';
 
   if (!user.role) {
@@ -67,15 +68,11 @@ export default function Sidebar() {
     <>
       <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          {user.profileImage ? (
-            <img
-              src={user.profileImage}
-              alt="User avatar"
-              className="sidebar-logo"
-            />
-          ) : (
-            <div className="sidebar-logo-placeholder" />
-          )}
+          <img
+            src={user.profileImage || defaultProfile}
+            alt="User avatar"
+            className="sidebar-logo"
+          />
           <div className="sidebar-title">
             <span className="title-main">{user.fullName ? user.fullName.split(' ')[0] : 'Welcome'}</span>
             <span className="title-sub">{isAdmin ? 'Administrator' : 'Customer'}</span>
@@ -104,15 +101,11 @@ export default function Sidebar() {
         <div className="sidebar-user-actions">
           <div className="sidebar-user-block">
             <div className="sidebar-user-avatar-wrapper">
-              {user.profileImage ? (
-                <img
-                  className="sidebar-user-avatar"
-                  src={user.profileImage}
-                  alt="User profile"
-                />
-              ) : (
-                <div className="sidebar-user-avatar placeholder" />
-              )}
+              <img
+                className="sidebar-user-avatar"
+                src={user.profileImage || defaultProfile}
+                alt="User profile"
+              />
             </div>
             <div>
               <p className="sidebar-user-name">{user.fullName || 'Guest User'}</p>
