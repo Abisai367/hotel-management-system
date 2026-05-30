@@ -41,7 +41,7 @@ body {
 
 .signup-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 100%;
   background: var(--card);
   padding: 34px;
   border-radius: 28px;
@@ -50,13 +50,13 @@ body {
 }
 
 .signup-title {
-  font-size: clamp(24pt, 1.8vw, 28pt);
-  margin-bottom: 10px;
+  font-size: clamp(28pt, 8vw, 36pt);
+  margin-bottom: 12px;
 }
 
 .signup-subtitle {
   color: var(--muted);
-  font-size: 15pt;
+  font-size: 17pt;
   margin-bottom: 22px;
   line-height: 1.6;
 }
@@ -73,6 +73,7 @@ body {
 
 .form-group label {
   color: var(--text);
+  font-size: 17pt;
   font-weight: 600;
 }
 
@@ -136,11 +137,19 @@ body {
   cursor: not-allowed;
 }
 
+.signup-footer p {
+  font-size: 16pt;
+  text-align: center;
+  margin-top: 18px;
+  color: var(--text);
+}
+
 @media (max-width: 850px) {
   .signup-card {
     width: 100%;
     max-width: 100%;
     padding: 28px;
+    border-radius: 24px;
   }
 
   .signup-form {
@@ -148,27 +157,48 @@ body {
   }
 
   .form-group label {
-    font-size: 17pt;
+    font-size: 18pt;
     font-weight: 700;
   }
 
   .form-group input {
-    padding: 16px 18px;
-    font-size: 17pt;
+    padding: 18px 18px;
+    font-size: 18pt;
+  }
+
+  .signup-btn {
+    padding: 18px 20px;
+    font-size: 18pt;
   }
 
   .avatar-preview-img {
-    width: 110px;
-    height: 110px;
+    width: 120px;
+    height: 120px;
   }
 }
 
 @media (max-width: 600px) {
   .signup-card {
     padding: 24px;
+    border-radius: 0;
+    min-height: 100vh;
+    box-shadow: none;
   }
 
   .signup-container {
-    padding: 16px;
+    padding: 0;
+    justify-content: flex-start;
+  }
+
+  .signup-title {
+    font-size: 32pt;
+  }
+
+  .signup-subtitle {
+    font-size: 18pt;
+  }
+
+  .form-group input {
+    padding: 20px 18px;
   }
 }
