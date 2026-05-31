@@ -44,8 +44,9 @@ export default function Login() {
         localStorage.setItem('user_role', data.user.role);
         localStorage.setItem('full_name', data.user.full_name);
         localStorage.setItem('user_id', data.user.id || '');
-          const sanitizedProfile = (returnedProfile && !returnedProfile.includes('projectpics')) ? returnedProfile : '';
-          localStorage.setItem('profile_image', sanitizedProfile);
+        const returnedProfile = data.user.profile_image_url || '';
+        const sanitizedProfile = (returnedProfile && !returnedProfile.includes('projectpics')) ? returnedProfile : '';
+        localStorage.setItem('profile_image', sanitizedProfile);
         localStorage.setItem('shift_schedule', data.user.shift_schedule || '');
         window.dispatchEvent(new Event('authchange'));
 

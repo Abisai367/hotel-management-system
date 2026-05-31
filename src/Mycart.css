@@ -381,7 +381,6 @@
     font-size: 16pt;
   }
 }
-}
 
 .primary-button.outline:hover {
   background: var(--primary-color, #0b4a46);

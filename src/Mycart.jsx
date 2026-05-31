@@ -103,7 +103,19 @@ export default function Mycart() {
     const fd = new FormData();
     fd.append('cart_item_id', itemToUpdate.cart_item_id);
     fd.append('quantity', newQty);
-;
+    try {
+      const res = await fetch(`${apiUrl}/update_cart_quantity.php`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.status === 'success') {
+        loadDatabaseCart();
+      } else {
+        setCartError(data.message || 'Unable to update quantity.');
+      }
+    } catch (err) {
+      console.error(err);
+      setCartError('Unable to update quantity.');
+    }
+  };
 
   const handleDecrement = async (itemToUpdate) => {
     if (Number(itemToUpdate.quantity) <= 1) return;
@@ -111,6 +123,18 @@ export default function Mycart() {
     const fd = new FormData();
     fd.append('cart_item_id', itemToUpdate.cart_item_id);
     fd.append('quantity', newQty);
+    try {
+      const res = await fetch(`${apiUrl}/update_cart_quantity.php`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.status === 'success') {
+        loadDatabaseCart();
+      } else {
+        setCartError(data.message || 'Unable to update quantity.');
+      }
+    } catch (err) {
+      console.error(err);
+      setCartError('Unable to update quantity.');
+    }
   };
 
   const formatCurrency = (value) =>
