@@ -21,12 +21,34 @@ const CategoryDisplay = () => {
   const baseUrl = import.meta.env.BASE_URL || '/';
   const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
   const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+  const customerId = localStorage.getItem('user_id');
+  const [cartError, setCartError] = useState('');
 
   const getProductImageUrl = (productPath) => {
     const rawPath = productPath?.toString().trim();
     if (!rawPath) return '';
     return rawPath;
   };
+
+  const loadCart = async () => {
+    if (!customerId) return;
+
+    try {
+      const response = await fetch(`${apiUrl}/fetch_cart.php?customer_id=${customerId}`);
+      const data = await response.json();
+      if (data.status === 'success' && Array.isArray(data.cart)) {
+        setMyCart(data.cart);
+      }
+    } catch (err) {
+      console.error('Unable to load cart:', err);
+      setCartError('Could not load cart items.');
+    }
+  };
+
+  useEffect(() => {
+    loadCart();
+  }, [customerId]);
+
   const placeholderImage = `data:image/svg+xml,%3Csvg width='600' height='400' xmlns='http://w3.org width='600' height='400' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23f3f5f7' font-family='Poppins, sans-serif' font-size='28'%3ENo image available%3C/text%3E%3C/svg%3E`;
 
   useEffect(() => {
@@ -51,15 +73,13 @@ const CategoryDisplay = () => {
   }, []);
 
   const isProductInCart = (product) => {
-    return myCart.some(
-      (item) => item.product_name === product.product_name && item.price === product.price
-    );
+    return myCart.some((item) => Number(item.product_id) === Number(product.product_id));
   };
 
-  const isAuthenticated = () => Boolean(localStorage.getItem('user_role'));
+  const isAuthenticated = () => Boolean(localStorage.getItem('user_role') && customerId);
   const isAdmin = () => localStorage.getItem('user_role')?.toLowerCase() === 'admin';
 
-  const handleCart = (product) => {
+  const handleCart = async (product) => {
     if (!isAuthenticated()) {
       const proceed = window.confirm(
         'You must be logged in to add items to cart. Continue to login screen?'
@@ -72,27 +92,29 @@ const CategoryDisplay = () => {
       return;
     }
 
-    const newProduct = {
-      product_name: product.product_name,
-      description: product.description,
-      price: product.price,
-      product_path: getProductImageUrl(product.product_path),
-      quantity: 1,
-    };
+    setCartError('');
 
-    setMyCart((prevCart = []) => {
-      const exists = prevCart.some(
-        (item) => item.product_name === newProduct.product_name && item.price === newProduct.price
-      );
+    try {
+      const formData = new FormData();
+      formData.append('customer_id', customerId);
+      formData.append('product_id', product.product_id);
+      formData.append('quantity', 1);
 
-      if (exists) {
-        return prevCart;
+      const response = await fetch(`${apiUrl}/add_to_cart.php`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        await loadCart();
+      } else {
+        setCartError(data.message || 'Unable to add product to cart.');
       }
-
-      const updatedCart = [...prevCart, newProduct];
-      console.log("Updated Cart:", updatedCart);
-      return updatedCart;
-    });
+    } catch (err) {
+      console.error('Add to cart error:', err);
+      setCartError('Unable to add item to cart. Please try again.');
+    }
   };
 
   return (
@@ -116,6 +138,7 @@ const CategoryDisplay = () => {
         </div>
       )}
       {authNotice && <div className="auth-notice">{authNotice}</div>}
+      {cartError && <div className="error-message">{cartError}</div>}
       {isLoading ? (
         <ul className="products-grid skeleton-grid" aria-busy="true" aria-label="Loading products">
           {Array.from({ length: 6 }).map((_, index) => (

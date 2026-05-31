@@ -60,15 +60,15 @@ input, textarea, select {
 
 @media (max-width: 1000px) {
     html {
-        font-size: 25px;
+        font-size: 16px;
     }
     body {
-        line-height: 1.9;
+        line-height: 1.8;
     }
 }
 
 @media (max-width: 480px) {
-    html { font-size: 25px; }
-    body { line-height: 1.9; }
-    :root { --text-dark: #e6eef0; --text-light: #cfe6e8; }
+    html { font-size: 15px; }
+    body { line-height: 1.8; }
+    :root { --text-dark: #111827; --text-light: #6b7280; }
 }

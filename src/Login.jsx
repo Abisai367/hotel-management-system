@@ -43,8 +43,7 @@ export default function Login() {
       if (data.status === 'success') {
         localStorage.setItem('user_role', data.user.role);
         localStorage.setItem('full_name', data.user.full_name);
-          // Avoid storing the old projectpics hotel logo path in localStorage.
-          const returnedProfile = (data.user.profile_image_url || '').trim();
+        localStorage.setItem('user_id', data.user.id || '');
           const sanitizedProfile = (returnedProfile && !returnedProfile.includes('projectpics')) ? returnedProfile : '';
           localStorage.setItem('profile_image', sanitizedProfile);
         localStorage.setItem('shift_schedule', data.user.shift_schedule || '');

@@ -90,9 +90,10 @@ export default function SignUp() {
       const data = await response.json();
 
       if (data.status === 'success') {
-        alert('Account created successfully! Redirecting to login...');
+        alert('Account created successfully! Redirecting to categories...');
         localStorage.setItem('user_role', 'customer');
         localStorage.setItem('full_name', fullName);
+        localStorage.setItem('user_id', data.user?.id || '');
         // Prevent storing the hotel's generic projectpics avatar as a user profile image.
         const sanitizedUploaded = (uploadedProfileUrl || '').trim();
         const profileToStore = (sanitizedUploaded && !sanitizedUploaded.includes('projectpics')) ? sanitizedUploaded : '';

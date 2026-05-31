@@ -67,8 +67,10 @@ body::-webkit-scrollbar {
 .main-content {
   flex: 1;
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   margin-left: 320px;
+  width: calc(100% - 320px);
+  max-width: 1400px;
   background: var(--light-bg);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -117,17 +119,15 @@ body::-webkit-scrollbar {
 @media (max-width: 1000px) {
   .main-content {
     margin-left: 0;
+    width: 100%;
     height: auto;
     min-height: calc(100vh - 84px);
-    padding-top: 84px;
+    padding: 20px 16px 24px;
+    max-width: 100%;
   }
 
   .app-layout {
     flex-direction: column;
-  }
-
-  /* Make main content comfortable on smaller screens */
-  .main-content {
-    padding: 20px;
+    align-items: stretch;
   }
 }

@@ -1,6 +1,8 @@
 ﻿.my-cart-page {
   width: 100%;
-  padding: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px;
   background: var(--light-bg, #f3f5f7);
   min-height: 100vh;
   transition: background-color 0.3s ease;
@@ -313,10 +315,72 @@
   transform: translateY(-2px);
 }
 
-.primary-button.outline {
-  background: transparent;
-  color: var(--primary-color, #0b4a46);
-  border: 2px solid var(--primary-color, #0b4a46);
+@media (max-width: 768px) {
+  .my-cart-page {
+    padding: 24px 16px;
+  }
+
+  .my-cart-header {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .my-cart-header h1 {
+    font-size: 28pt;
+  }
+
+  .header-actions {
+    align-items: flex-start;
+  }
+
+  .cart-items-panel {
+    padding: 24px;
+  }
+
+  .cart-item {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .item-media {
+    width: 100%;
+  }
+
+  .item-media img,
+  .product-image-placeholder {
+    height: 260px;
+  }
+
+  .item-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-cart-header {
+    padding: 18px;
+  }
+
+  .cart-section-heading h2 {
+    font-size: 24pt;
+  }
+
+  .item-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .item-price-large,
+  .item-subtotal strong {
+    font-size: 16pt;
+  }
+}
 }
 
 .primary-button.outline:hover {

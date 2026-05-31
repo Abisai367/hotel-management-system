@@ -1,4 +1,4 @@
-﻿import React, { useContext, useEffect, useState} from "react";
+﻿import React, { useContext, useEffect, useState } from "react";
 import { MyCart } from "./CartContext";
 import { Link } from "react-router-dom";
 import ScrollReveal from "scrollreveal";
@@ -6,7 +6,12 @@ import "./Mycart.css";
 
 export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [cartError, setCartError] = useState('');
   const baseUrl = import.meta.env.BASE_URL || '/';
+  const customerId = localStorage.getItem('user_id');
+  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
+
   
   const [tableNumber, setTableNumber] = useState("");
   const [pickupTime, setPickupTime] = useState("");
@@ -17,6 +22,7 @@ export default function Mycart() {
   const [orderType, setOrderType] = useState('dineIn');
   const [loadingPay, setLoadingPay] = useState(false);
   const [payMessage, setPayMessage] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
 
   const handleTableNumberChange = (e) => {
@@ -39,26 +45,72 @@ export default function Mycart() {
     0
   );
 
-  const handleRemove = (indexToRemove) => {
-    const updatedCart = myCart.filter((_, index) => index !== indexToRemove);
-    setMyCart(updatedCart);
+  const loadDatabaseCart = async () => {
+    setCartLoading(true);
+    setCartError('');
+
+    if (!customerId) {
+      setMyCart([]);
+      setCartLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${apiUrl}/fetch_cart.php?customer_id=${customerId}`);
+      const data = await res.json();
+      if (data.status === 'success' && Array.isArray(data.cart)) {
+        setMyCart(data.cart);
+      } else {
+        setMyCart([]);
+      }
+    } catch (err) {
+      console.error('Cart loading exception:', err);
+      setCartError('Unable to load cart. Please refresh the page.');
+      setMyCart([]);
+    } finally {
+      setCartLoading(false);
+    }
   };
 
-  const handleIncrement = (indexToUpdate) => {
-    const updatedCart = myCart.map((item, index) =>
-      index === indexToUpdate
-        ? { ...item, quantity: Number(item.quantity || 1) + 1 }
-        : item
-    );
-    setMyCart(updatedCart);
+  useEffect(() => {
+    loadDatabaseCart();
+  }, [customerId]);
+
+  const handleRemove = async (cartItem) => {
+    const confirmed = window.confirm('Remove item from cart?');
+    if (!confirmed) return;
+
+    const fd = new FormData();
+    fd.append('cart_item_id', cartItem.cart_item_id);
+    fd.append('customer_id', customerId);
+
+    try {
+      const res = await fetch(`${apiUrl}/remove_from_cart.php`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.status === 'success') {
+        loadDatabaseCart();
+      } else {
+        setCartError(data.message || 'Unable to remove item.');
+      }
+    } catch (err) {
+      console.error(err);
+      setCartError('Unable to remove item from cart.');
+    }
   };
-  const handleDecrement = (indexToUpdate) => {
-    const updatedCart = myCart.map((item, index) => {
-      if (index !== indexToUpdate) return item;
-      const quantity = Math.max(1, Number(item.quantity || 1) - 1);
-      return { ...item, quantity };
-    });
-    setMyCart(updatedCart);
+
+  const handleIncrement = async (itemToUpdate) => {
+    const newQty = Number(itemToUpdate.quantity) + 1;
+    const fd = new FormData();
+    fd.append('cart_item_id', itemToUpdate.cart_item_id);
+    fd.append('quantity', newQty);
+;
+
+  const handleDecrement = async (itemToUpdate) => {
+    if (Number(itemToUpdate.quantity) <= 1) return;
+    const newQty = Number(itemToUpdate.quantity) - 1;
+    const fd = new FormData();
+    fd.append('cart_item_id', itemToUpdate.cart_item_id);
+    fd.append('quantity', newQty);
   };
 
   const formatCurrency = (value) =>
@@ -149,6 +201,8 @@ export default function Mycart() {
           <span className="header-total">{formatCurrency(total)}</span>
         </div>
       </section>
+      {cartLoading && <p className="loading-text">Loading cart...</p>}
+      {cartError && <p className="error-message">{cartError}</p>}
 
       {myCart.length === 0 ? (
         <section className="empty-cart-panel">
@@ -195,7 +249,7 @@ export default function Mycart() {
                           <button
                             type="button"
                             className="quantity-button"
-                            onClick={() => handleDecrement(index)}
+                            onClick={() => handleDecrement(item)}
                           >
                             -
                           </button>
@@ -203,7 +257,7 @@ export default function Mycart() {
                           <button
                             type="button"
                             className="quantity-button"
-                            onClick={() => handleIncrement(index)}
+                            onClick={() => handleIncrement(item)}
                           >
                             +
                           </button>
@@ -219,7 +273,7 @@ export default function Mycart() {
                       <button
                         type="button"
                         className="secondary-button"
-                        onClick={() => handleRemove(index)}
+                        onClick={() => handleRemove(item)}
                       >
                         Remove
                       </button>

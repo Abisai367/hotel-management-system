@@ -11,18 +11,33 @@ import { MyCart } from './CartContext';
 import './App.css';
 
 function App() {
-  const [myCart, setMyCart] = useState(() => {
-    const savedCart = localStorage.getItem('myCart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [myCart, setMyCart] = useState([]);
   const [auth, setAuth] = useState(() => !!localStorage.getItem('user_role'));
   const [loading, setLoading] = useState(false);
   const [roleLoaded, setRoleLoaded] = useState(!!localStorage.getItem('user_role'));
   const maxRetries = 15;
+  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
 
-  useEffect(() => {
-    localStorage.setItem('myCart', JSON.stringify(myCart));
-  }, [myCart]);
+  const loadUserCart = async () => {
+    const customerId = localStorage.getItem('user_id');
+    if (!customerId) {
+      setMyCart([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/fetch_cart.php?customer_id=${customerId}`);
+      const data = await response.json();
+      if (data.status === 'success' && Array.isArray(data.cart)) {
+        setMyCart(data.cart);
+      } else {
+        setMyCart([]);
+      }
+    } catch (error) {
+      console.error('Unable to load user cart:', error);
+      setMyCart([]);
+    }
+  };
 
   useEffect(() => {
     const onAuthChange = () => {
@@ -32,6 +47,7 @@ function App() {
       setRoleLoaded(hasRole);
       if (!hasRole) {
         setLoading(false);
+        setMyCart([]);
         return;
       }
       setLoading(true);
@@ -53,6 +69,14 @@ function App() {
     window.addEventListener('authchange', onAuthChange);
     return () => window.removeEventListener('authchange', onAuthChange);
   }, []);
+
+  useEffect(() => {
+    if (auth) {
+      loadUserCart();
+    } else {
+      setMyCart([]);
+    }
+  }, [auth]);
 
   // Auto-refresh check on mount
   useEffect(() => {
