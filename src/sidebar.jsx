@@ -92,7 +92,7 @@ export default function Sidebar() {
             {isAdmin && (
               <Link to="/add-employee"><li className="nav-item"><FaThLarge className="nav-icon"/> Add Employee</li></Link>
             )}
-            <li className="nav-item"><FaComments className="nav-icon"/> Messages</li>
+            <Link to="/messages"><li className="nav-item"><FaComments className="nav-icon"/> Messages</li></Link>
             <li className="nav-item"><FaBell className="nav-icon"/> Notifications</li>
             <li className="nav-item"><FaHeadset className="nav-icon"/> Support</li>
           </ul>

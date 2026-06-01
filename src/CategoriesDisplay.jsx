@@ -31,17 +31,23 @@ const CategoryDisplay = () => {
   };
 
   const loadCart = async () => {
-    if (!customerId) return;
+    if (!customerId) {
+      setMyCart([]);
+      return;
+    }
 
     try {
       const response = await fetch(`${apiUrl}/fetch_cart.php?customer_id=${customerId}`);
       const data = await response.json();
       if (data.status === 'success' && Array.isArray(data.cart)) {
         setMyCart(data.cart);
+      } else {
+        setMyCart([]);
       }
     } catch (err) {
       console.error('Unable to load cart:', err);
       setCartError('Could not load cart items.');
+      setMyCart([]);
     }
   };
 

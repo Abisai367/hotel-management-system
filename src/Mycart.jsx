@@ -177,8 +177,7 @@ export default function Mycart() {
       const data = await res.json();
       if (data.status === 'success') {
         setPayMessage({ type: 'success', text: data.message || 'Payment initiated. Check your phone.' });
-        
-      setMyCart([]);
+        await loadDatabaseCart();
         setCheckoutIndex(null);
       } else {
         setPayMessage({ type: 'error', text: data.message || 'Payment failed to start' });
@@ -213,6 +212,9 @@ export default function Mycart() {
   return (
     <main className="my-cart-page">
       <section className="my-cart-header">
+        <Link to="/categories" className="mobile-back-button">
+          ← Back
+        </Link>
         <div>
           <p className="page-badge">Shopping Cart</p>
           <h1>My Cart</h1>

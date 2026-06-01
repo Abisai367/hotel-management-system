@@ -7,6 +7,7 @@ import Mycart from './Mycart.jsx';
 import Login from './Login.jsx';
 import SignUp from './SignUp.jsx';
 import AddEmployee from './AddEmployee.jsx';
+import ChatRoom from './ChatRoom.jsx'
 import { MyCart } from './CartContext';
 import './App.css';
 
@@ -78,7 +79,6 @@ function App() {
     }
   }, [auth]);
 
-  // Auto-refresh check on mount
   useEffect(() => {
     if (auth && !roleLoaded) {
       setLoading(true);
@@ -135,6 +135,7 @@ function App() {
                   path="/add-employee" 
                   element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
                 />
+                <Route path="/messages" element={isAuthenticated() ? <ChatRoom /> : <Navigate to="/login" />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
