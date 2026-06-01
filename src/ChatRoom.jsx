@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { encryptMessage, decryptMessage } from './cryptoHelper';
+import { formatChatDate, formatChatTime, getChatDateSeparator } from './dateFormatter';
 import './ChatRoom.css';
 
 export default function ChatRoom() {
@@ -139,8 +140,6 @@ export default function ChatRoom() {
           })
         );
         setChatHistory(resolvedHistory);
-        
-        // Mark unread messages as read after a short delay to ensure they're loaded
         setTimeout(() => {
           markMessagesAsRead();
         }, 500);
@@ -168,7 +167,6 @@ export default function ChatRoom() {
   }, [activeContact, currentUserId]);
 
   useEffect(() => {
-    // Only auto-scroll if user is at bottom or if it's the first load (new message scenario)
     if (chatHistory.length > 0 && (isUserAtBottom || chatHistory.length > previousHistoryLengthRef.current)) {
       previousHistoryLengthRef.current = chatHistory.length;
       setTimeout(() => scrollToBottom(), 50);
@@ -314,20 +312,31 @@ export default function ChatRoom() {
               {chatHistory.length > 0 ? (
                 chatHistory.map((msg, idx) => {
                   const isMe = String(msg.sender_id) === String(currentUserId);
+                  
+                  // Check if we need to show a date separator
+                  const showDateSeparator = idx === 0 || 
+                    getChatDateSeparator(msg.created_at) !== getChatDateSeparator(chatHistory[idx - 1].created_at);
+
                   return (
-                    <div
-                      key={idx}
-                      className={`chat-room__message-wrapper ${isMe ? 'chat-room__message-wrapper--mine' : ''}`}
-                    >
-                      <div className="chat-room__message-bubble">{msg.decryptedText}</div>
-                      <span className="chat-room__message-time">
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        {isMe && (
-                          <span className={`chat-room__message-tick ${msg.is_read ? 'chat-room__message-tick--read' : ''}`}>
-                            ✓✓
-                          </span>
-                        )}
-                      </span>
+                    <div key={idx}>
+                      {showDateSeparator && (
+                        <div className="chat-room__date-separator">
+                          <span className="chat-room__date-text">{getChatDateSeparator(msg.created_at)}</span>
+                        </div>
+                      )}
+                      <div
+                        className={`chat-room__message-wrapper ${isMe ? 'chat-room__message-wrapper--mine' : ''}`}
+                      >
+                        <div className="chat-room__message-bubble">{msg.decryptedText}</div>
+                        <span className="chat-room__message-time">
+                          {formatChatTime(msg.created_at)}
+                          {isMe && (
+                            <span className={`chat-room__message-tick ${msg.is_read ? 'chat-room__message-tick--read' : ''}`}>
+                              ✓✓
+                            </span>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   );
                 })
@@ -370,20 +379,11 @@ export default function ChatRoom() {
               <form onSubmit={handleCreateContactSubmit}>
                 <div className="chat-room__field">
                   <label className="chat-room__field-label">First Name</label>
-                  <input
-                    className="chat-room__field-input"
-                    type="text"
-                    placeholder="First name"
-                    value={newFirstName}
-                    onChange={(e) => setNewFirstName(e.target.value)}
-                    required
-                  />
+                  <input className="chat-room__field-input" type="text" placeholder="First name" value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} required />
                 </div>
                 <div className="chat-room__field">
                   <label className="chat-room__field-label">Last Name</label>
-                  <input
-                    className="chat-room__field-input"
-                    type="text"
+                  <input className="chat-room__field-input" type="text"
                     placeholder="Last name"
                     value={newLastName}
                     onChange={(e) => setNewLastName(e.target.value)}
@@ -391,24 +391,8 @@ export default function ChatRoom() {
                 </div>
                 <div className="chat-room__field-group">
                   <div className="chat-room__field">
-                    <label className="chat-room__field-label">Country</label>
-                    <input
-                      className="chat-room__field-input"
-                      type="text"
-                      value="KE +254"
-                      disabled
-                    />
-                  </div>
-                  <div className="chat-room__field">
-                    <label className="chat-room__field-label">Phone</label>
-                    <input
-                      className="chat-room__field-input"
-                      type="text"
-                      placeholder="Phone number"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      required
-                    />
+                    <label className="chat-room__field-label">Phone number</label>
+                    <input className="chat-room__field-input" type="text" placeholder="07xxxxxxxx" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required />
                   </div>
                 </div>
                 {errorMessage && <div className="chat-room__feedback">{errorMessage}</div>}

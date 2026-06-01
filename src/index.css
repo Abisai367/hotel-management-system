@@ -18,7 +18,6 @@
     --shadow-color: rgba(11, 74, 70, 0.1);
 }
 
-
 @media (prefers-color-scheme: dark) {
     :root {
         --primary-color: #0f766e;
@@ -46,6 +45,8 @@ body {
     color: var(--text-dark);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button {
@@ -58,17 +59,30 @@ input, textarea, select {
     transition: all 0.3s ease;
 }
 
-@media (max-width: 1000px) {
+/* Responsive typography */
+@media (max-width: 480px) {
+    html { 
+        font-size: 14px;
+    }
+    body { 
+        line-height: 1.6;
+    }
+}
+
+@media (max-width: 640px) {
+    html {
+        font-size: 15px;
+    }
+    body {
+        line-height: 1.7;
+    }
+}
+
+@media (min-width: 641px) {
     html {
         font-size: 16px;
     }
     body {
         line-height: 1.8;
     }
-}
-
-@media (max-width: 480px) {
-    html { font-size: 15px; }
-    body { line-height: 1.8; }
-    :root { --text-dark: #111827; --text-light: #6b7280; }
 }
