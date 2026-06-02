@@ -27,6 +27,11 @@ export default function ChatRoom() {
   const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
   const previousHistoryLengthRef = useRef(0);
 
+  useEffect(() => {
+    document.body.classList.add('chat-active');
+    return () => document.body.classList.remove('chat-active');
+  }, []);
+
   const scrollToBottom = () => {
     const behavior = (typeof window !== 'undefined' && window.innerWidth <= 600) ? 'auto' : 'smooth';
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -353,36 +358,40 @@ export default function ChatRoom() {
           <>
             <div className="chat-room__conversation-panel">
               <div className="chat-room__conversation-header">
-              <button
-                className="chat-room__button"
-                type="button"
-                onClick={() => {
-                  setActiveContact(null);
-                  setChatHistory([]);
-                  setErrorMessage('');
-                  setStatusMessage('');
-                }}
-              >
-                ← Back
-              </button>
-              <button
-                className="chat-room__button chat-room__save-contact-button"
-                type="button"
-                onClick={() => openContactModal('edit', activeContact)}
-              >
-                {activeContact?.isSaved ? 'Edit contact' : 'Save contact'}
-              </button>
-              <div className="chat-room__avatar">
-                {activeContact.profile_image_url ? (
-                  <img src={activeContact.profile_image_url} alt="Avatar" />
-                ) : (
-                  activeContact.display_name?.charAt(0).toUpperCase() || '?'
-                )}
-              </div>
-              <div className="chat-room__conversation-info">
-                <p className="chat-room__conversation-name">{activeContact.display_name}</p>
-                <p className="chat-room__conversation-subtitle">Five Star End-to-End Encrypted</p>
-              </div>
+                <div className="chat-room__conversation-header-left">
+                  <button
+                    className="chat-room__button chat-room__back-button"
+                    type="button"
+                    onClick={() => {
+                      setActiveContact(null);
+                      setChatHistory([]);
+                      setErrorMessage('');
+                      setStatusMessage('');
+                    }}
+                  >
+                    ←
+                  </button>
+                  <div className="chat-room__avatar chat-room__conversation-avatar">
+                    {activeContact.profile_image_url ? (
+                      <img src={activeContact.profile_image_url} alt="Avatar" />
+                    ) : (
+                      activeContact.display_name?.charAt(0).toUpperCase() || '?'
+                    )}
+                  </div>
+                  <div className="chat-room__conversation-info">
+                    <p className="chat-room__conversation-name">{activeContact.display_name}</p>
+                    <p className="chat-room__conversation-subtitle">last seen today at 04:04</p>
+                  </div>
+                </div>
+                <div className="chat-room__conversation-header-actions">
+                  <button
+                    className="chat-room__button chat-room__save-contact-button"
+                    type="button"
+                    onClick={() => openContactModal('edit', activeContact)}
+                  >
+                    {activeContact?.isSaved ? 'Edit' : 'Save'}
+                  </button>
+                </div>
               </div>
 
               <div className="chat-room__messages" ref={messagesContainerRef} onScroll={handleMessagesScroll}>
