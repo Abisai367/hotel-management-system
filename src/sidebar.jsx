@@ -7,6 +7,7 @@ import './sidebar.css'
 export default function Sidebar() {
   const [isDark, setIsDark] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1000);
   const [user, setUser] = useState({ role: '', fullName: '', profileImage: '' });
   const navigate = useNavigate();
 
@@ -22,11 +23,13 @@ export default function Sidebar() {
     mediaQuery.addEventListener("change", handler);
 
     const resizeHandler = () => {
+      setWindowWidth(window.innerWidth);
       if (window.innerWidth > 1000) {
         setNavOpen(false);
       }
     };
     window.addEventListener('resize', resizeHandler);
+    resizeHandler();
 
     return () => {
       mediaQuery.removeEventListener("change", handler);
@@ -60,12 +63,29 @@ export default function Sidebar() {
   const defaultProfile = 'https://res.cloudinary.com/dmae5wpe9/image/upload/v1780127792/esi53lgjgdwvr9jcbno4.png';
   const isAdmin = user.role.toLowerCase() === 'admin';
 
+  const isMobileView = windowWidth <= 1000;
+
   if (!user.role) {
     return null;
   }
 
   return (
     <>
+      {isMobileView && (
+        <div className="sidebar-topbar">
+          <div className="sidebar-topbar-left">
+            <button className="topbar-menu-btn" onClick={handleToggle} aria-label="Toggle menu">
+              {navOpen ? <FaTimes /> : <FaBars />}
+            </button>
+            <div className="sidebar-topbar-title">Menu</div>
+          </div>
+          <div className="sidebar-topbar-links">
+            <Link to="/categories" className="sidebar-topbar-link" onClick={handleNavClick}>Foods</Link>
+            <Link to="/MyCart" className="sidebar-topbar-link" onClick={handleNavClick}>Cart</Link>
+            <Link to="/messages" className="sidebar-topbar-link" onClick={handleNavClick}>Messages</Link>
+          </div>
+        </div>
+      )}
       <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <img

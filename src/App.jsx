@@ -7,7 +7,8 @@ import Mycart from './Mycart.jsx';
 import Login from './Login.jsx';
 import SignUp from './SignUp.jsx';
 import AddEmployee from './AddEmployee.jsx';
-import ChatRoom from './ChatRoom.jsx'
+import ChatRoom from './ChatRoom.jsx';
+import ErrorScreen from './ErrorScreen.jsx';
 import { MyCart } from './CartContext';
 import './App.css';
 
@@ -16,6 +17,7 @@ function App() {
   const [auth, setAuth] = useState(() => !!localStorage.getItem('user_role'));
   const [loading, setLoading] = useState(false);
   const [roleLoaded, setRoleLoaded] = useState(!!localStorage.getItem('user_role'));
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const maxRetries = 15;
   const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
 
@@ -99,6 +101,17 @@ function App() {
     }
   }, [auth, roleLoaded]);
 
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const isAuthenticated = () => auth && roleLoaded;
   const isAdminOrEmployee = () => {
     const role = localStorage.getItem('user_role');
@@ -121,24 +134,30 @@ function App() {
           <div className="app-layout">
             {isAuthenticated() && <Sidebar />}
             <main className="main-content">
-              <Routes>
-                <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/categories" replace />} />
-                <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to="/categories" replace />} />
-                <Route path="/" element={<Navigate to="/categories" replace />} />
-                <Route path="/categories" element={<CategoriesDisplay />} />
-                <Route path="/MyCart" element={<Mycart />} />
-                <Route 
-                  path="/upload" 
-                  element={isAuthenticated() && isStrictAdmin() ? <UploadCategories /> : <Navigate to="/login" />} 
-                />
-                <Route 
-                  path="/add-employee" 
-                  element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
-                />
-                <Route path="/messages" element={isAuthenticated() ? <ChatRoom /> : <Navigate to="/login" />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </main>
+            {!isOnline && (
+              <div className="network-status-banner">
+                No internet connection. Some features may be limited.
+              </div>
+            )}
+            <Routes>
+              <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/categories" replace />} />
+              <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to="/categories" replace />} />
+              <Route path="/" element={<Navigate to="/categories" replace />} />
+              <Route path="/categories" element={<CategoriesDisplay />} />
+              <Route path="/MyCart" element={<Mycart />} />
+              <Route 
+                path="/upload" 
+                element={isAuthenticated() && isStrictAdmin() ? <UploadCategories /> : <Navigate to="/login" />} 
+              />
+              <Route 
+                path="/add-employee" 
+                element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
+              />
+              <Route path="/messages" element={isAuthenticated() ? <ChatRoom /> : <Navigate to="/login" />} />
+              <Route path="/service-unavailable" element={<ErrorScreen code={503} />} />
+              <Route path="*" element={<ErrorScreen code={404} />} />
+            </Routes>
+          </main>
           </div>
         )}
       </Router>

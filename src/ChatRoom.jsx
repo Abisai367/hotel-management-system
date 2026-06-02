@@ -12,11 +12,13 @@ export default function ChatRoom() {
   const [chatHistory, setChatHistory] = useState([]);
   const [uiMessage, setUiMessage] = useState('');
   const [isUserAtBottom, setIsUserAtBottom] = useState(true);
+  const [unreadNewMessages, setUnreadNewMessages] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [newFirstName, setNewFirstName] = useState('');
   const [newLastName, setNewLastName] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [contactModalMode, setContactModalMode] = useState('new');
   const [errorMessage, setErrorMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -37,7 +39,36 @@ export default function ChatRoom() {
   };
 
   const handleMessagesScroll = () => {
-    setIsUserAtBottom(isAtBottom());
+    const isBottom = isAtBottom();
+    setIsUserAtBottom(isBottom);
+    if (isBottom) {
+      setUnreadNewMessages(false);
+    }
+  };
+
+  const getNameParts = (fullName) => {
+    const parts = fullName?.trim().split(/\s+/) || [];
+    return {
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' ') || ''
+    };
+  };
+
+  const openContactModal = (mode = 'new', contact = null) => {
+    setErrorMessage('');
+    setStatusMessage('');
+    setContactModalMode(mode);
+    if (mode === 'edit' && contact) {
+      const { firstName, lastName } = getNameParts(contact.display_name || '');
+      setNewFirstName(firstName);
+      setNewLastName(lastName);
+      setNewPhone(contact.phone_number || '');
+    } else {
+      setNewFirstName('');
+      setNewLastName('');
+      setNewPhone('');
+    }
+    setModalOpen(true);
   };
 
   const markMessagesAsRead = async () => {
@@ -66,15 +97,27 @@ export default function ChatRoom() {
       if (data.status === 'success' && Array.isArray(data.chats)) {
         const processedList = await Promise.all(
           data.chats.map(async (chat) => {
+            const unreadCount = Number(chat.unread_count || 0);
+            const isSaved = Number(chat.is_saved || 0) === 1;
             if (chat.last_message) {
               const clearText = await decryptMessage(chat.last_message, chat.last_iv, currentUserId, chat.id);
               const senderLabel = String(chat.last_sender_id) === String(currentUserId) ? 'You' : '';
-              return { ...chat, snippet: clearText, senderLabel };
+              return { ...chat, snippet: clearText, senderLabel, unreadCount, isSaved };
             }
-            return { ...chat, snippet: '', senderLabel: '' };
+            return { ...chat, snippet: '', senderLabel: '', unreadCount, isSaved };
           })
         );
-        setChatList(processedList);
+
+        const sortedList = processedList.sort((a, b) => {
+          const aTime = a.last_time ? new Date(a.last_time).getTime() : 0;
+          const bTime = b.last_time ? new Date(b.last_time).getTime() : 0;
+          if (bTime === aTime) {
+            return (b.unreadCount || 0) - (a.unreadCount || 0);
+          }
+          return bTime - aTime;
+        });
+
+        setChatList(sortedList);
       } else {
         setChatList([]);
       }
@@ -109,10 +152,12 @@ export default function ChatRoom() {
           id: data.contact.contact_user_id,
           phone_number: newPhone.trim(),
           display_name: data.contact.saved_name,
-          profile_image_url: data.contact.profile_image_url
+          profile_image_url: data.contact.profile_image_url,
+          isSaved: true
         };
         setActiveContact(target);
         setModalOpen(false);
+        setContactModalMode('new');
         setNewFirstName('');
         setNewLastName('');
         setNewPhone('');
@@ -167,13 +212,20 @@ export default function ChatRoom() {
   }, [activeContact, currentUserId]);
 
   useEffect(() => {
-    if (chatHistory.length > 0 && (isUserAtBottom || chatHistory.length > previousHistoryLengthRef.current)) {
-      previousHistoryLengthRef.current = chatHistory.length;
-      setTimeout(() => scrollToBottom(), 50);
-    } else {
-      previousHistoryLengthRef.current = chatHistory.length;
+    const newMessagesArrived = chatHistory.length > previousHistoryLengthRef.current;
+    const shouldAutoScroll = isUserAtBottom || previousHistoryLengthRef.current === 0;
+
+    if (newMessagesArrived) {
+      if (shouldAutoScroll) {
+        setUnreadNewMessages(false);
+        setTimeout(() => scrollToBottom(), 50);
+      } else {
+        setUnreadNewMessages(true);
+      }
     }
-  }, [chatHistory]);
+
+    previousHistoryLengthRef.current = chatHistory.length;
+  }, [chatHistory, isUserAtBottom]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -211,6 +263,15 @@ export default function ChatRoom() {
     chat.phone_number?.includes(searchQuery)
   );
 
+  const visibleChats = filteredChats.slice().sort((a, b) => {
+    const aTime = a.last_time ? new Date(a.last_time).getTime() : 0;
+    const bTime = b.last_time ? new Date(b.last_time).getTime() : 0;
+    if (bTime === aTime) {
+      return (b.unreadCount || 0) - (a.unreadCount || 0);
+    }
+    return bTime - aTime;
+  });
+
   if (!currentUserId) {
     return (
       <div className="chat-room chat-room--empty">
@@ -226,7 +287,7 @@ export default function ChatRoom() {
           <>
             <div className="chat-room__panel-header">
               <h2 className="chat-room__title">Five Star</h2>
-              <button className="chat-room__button" onClick={() => setModalOpen(true)}>
+              <button className="chat-room__button" onClick={() => openContactModal('new')}>
                 + New Contact
               </button>
             </div>
@@ -242,8 +303,8 @@ export default function ChatRoom() {
             </div>
 
             <div className="chat-room__list">
-              {filteredChats.length > 0 ? (
-                filteredChats.map((chat) => (
+              {visibleChats.length > 0 ? (
+                visibleChats.map((chat) => (
                   <button
                     key={chat.id}
                     type="button"
@@ -258,11 +319,19 @@ export default function ChatRoom() {
                       )}
                     </div>
                     <div className="chat-room__contact-details">
-                      <p className="chat-room__contact-name">{chat.display_name}</p>
+                      <div className="chat-room__contact-title-row">
+                        <p className="chat-room__contact-name">{chat.display_name}</p>
+                        {chat.unreadCount > 0 && (
+                          <span className="chat-room__unread-badge">{chat.unreadCount}</span>
+                        )}
+                      </div>
                       <p className="chat-room__contact-snippet">
                         {chat.senderLabel && <span className="chat-room__sender-label">{chat.senderLabel}: </span>}
                         {chat.snippet || 'No message history'}
                       </p>
+                      {!chat.isSaved && (
+                        <span className="chat-room__contact-tag">Unsaved</span>
+                      )}
                     </div>
                     <span className="chat-room__contact-meta">
                       {chat.last_time ? new Date(chat.last_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -282,7 +351,8 @@ export default function ChatRoom() {
           </>
         ) : (
           <>
-            <div className="chat-room__conversation-header">
+            <div className="chat-room__conversation-panel">
+              <div className="chat-room__conversation-header">
               <button
                 className="chat-room__button"
                 type="button"
@@ -295,6 +365,13 @@ export default function ChatRoom() {
               >
                 ← Back
               </button>
+              <button
+                className="chat-room__button chat-room__save-contact-button"
+                type="button"
+                onClick={() => openContactModal('edit', activeContact)}
+              >
+                {activeContact?.isSaved ? 'Edit contact' : 'Save contact'}
+              </button>
               <div className="chat-room__avatar">
                 {activeContact.profile_image_url ? (
                   <img src={activeContact.profile_image_url} alt="Avatar" />
@@ -306,16 +383,28 @@ export default function ChatRoom() {
                 <p className="chat-room__conversation-name">{activeContact.display_name}</p>
                 <p className="chat-room__conversation-subtitle">Five Star End-to-End Encrypted</p>
               </div>
-            </div>
+              </div>
 
-            <div className="chat-room__messages" ref={messagesContainerRef} onScroll={handleMessagesScroll}>
+              <div className="chat-room__messages" ref={messagesContainerRef} onScroll={handleMessagesScroll}>
+              {unreadNewMessages && (
+                <div className="chat-room__new-message-alert">
+                  <span>You are reading older messages. New messages have arrived.</span>
+                  <button
+                    type="button"
+                    className="chat-room__new-message-button"
+                    onClick={() => {
+                      setUnreadNewMessages(false);
+                      scrollToBottom();
+                    }}
+                  >
+                    Jump to latest
+                  </button>
+                </div>
+              )}
               {chatHistory.length > 0 ? (
                 chatHistory.map((msg, idx) => {
                   const isMe = String(msg.sender_id) === String(currentUserId);
-                  
-                  // Check if we need to show a date separator
-                  const showDateSeparator = idx === 0 || 
-                    getChatDateSeparator(msg.created_at) !== getChatDateSeparator(chatHistory[idx - 1].created_at);
+                  const showDateSeparator = idx === 0 || getChatDateSeparator(msg.created_at) !== getChatDateSeparator(chatHistory[idx - 1].created_at);
 
                   return (
                     <div key={idx}>
@@ -344,6 +433,7 @@ export default function ChatRoom() {
                 <div className="chat-room__empty-state">Start chatting with {activeContact.display_name}</div>
               )}
               <div ref={messagesEndRef} />
+              </div>
             </div>
 
             <form className="chat-room__composer" onSubmit={handleSendMessage}>
@@ -366,7 +456,7 @@ export default function ChatRoom() {
         <div className="chat-room__modal-overlay">
           <div className="chat-room__modal">
             <div className="chat-room__modal-header">
-              <h3 className="chat-room__modal-title">New Contact</h3>
+              <h3 className="chat-room__modal-title">{contactModalMode === 'edit' ? 'Edit Contact' : 'New Contact'}</h3>
               <button
                 className="chat-room__modal-close"
                 type="button"
@@ -392,7 +482,15 @@ export default function ChatRoom() {
                 <div className="chat-room__field-group">
                   <div className="chat-room__field">
                     <label className="chat-room__field-label">Phone number</label>
-                    <input className="chat-room__field-input" type="text" placeholder="07xxxxxxxx" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required />
+                    <input
+                      className="chat-room__field-input"
+                      type="text"
+                      placeholder="07xxxxxxxx"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      required
+                      readOnly={contactModalMode === 'edit'}
+                    />
                   </div>
                 </div>
                 {errorMessage && <div className="chat-room__feedback">{errorMessage}</div>}
