@@ -94,7 +94,7 @@ export default function SignUp() {
         localStorage.setItem('user_role', 'customer');
         localStorage.setItem('full_name', fullName);
         localStorage.setItem('user_id', data.user?.id || '');
-        // Prevent storing the hotel's generic projectpics avatar as a user profile image.
+        
         const sanitizedUploaded = (uploadedProfileUrl || '').trim();
         const profileToStore = (sanitizedUploaded && !sanitizedUploaded.includes('projectpics')) ? sanitizedUploaded : '';
         localStorage.setItem('profile_image', profileToStore);
