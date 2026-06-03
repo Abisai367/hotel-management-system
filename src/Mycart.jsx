@@ -136,39 +136,85 @@ export default function Mycart() {
       return;
     }
 
+    if (orderType === 'dineIn' && !tableNumber.trim()) {
+      setPayMessage({ type: 'error', text: 'Enter a table number for dine-in orders' });
+      return;
+    }
+
+    if (orderType === 'takeAway') {
+      if (!pickupDay) {
+        setPayMessage({ type: 'error', text: 'Choose a pickup day' });
+        return;
+      }
+      const chosenPickupTime = buildPickupDateTime(pickupDay, pickupHour, pickupPeriod);
+      if (!chosenPickupTime) {
+        setPayMessage({ type: 'error', text: 'Pickup time must be later than the current time' });
+        return;
+      }
+      if (!contactNumber.trim()) {
+        setPayMessage({ type: 'error', text: 'Enter contact number for pickup orders' });
+        return;
+      }
+      setPickupTime(chosenPickupTime);
+    }
+
+    if (orderType === 'delivery') {
+      if (!deliveryAddress.trim()) {
+        setPayMessage({ type: 'error', text: 'Enter delivery address for delivery orders' });
+        return;
+      }
+      if (!contactNumber.trim()) {
+        setPayMessage({ type: 'error', text: 'Enter contact number for delivery orders' });
+        return;
+      }
+    }
+
+    let normalizedPhone = paymentNumber.replace(/[^0-9]/g, '');
+    if (normalizedPhone.startsWith('0')) {
+      normalizedPhone = '254' + normalizedPhone.substring(1);
+    } else if (!normalizedPhone.startsWith('254')) {
+      normalizedPhone = '254' + normalizedPhone;
+    }
+
     const payload = {
-      phone: paymentNumber.replace(/[^0-9]/g, ''),
-      amount: total,
+      phone: normalizedPhone,
+      amount: Math.round(total),
+      customerId: customerId,
       items: myCart,
       orderType,
       tableNumber,
-      pickupTime,
-      deliveryAddress,
-      contactNumber
+      pickupTime: orderType === 'takeAway' ? buildPickupDateTime(pickupDay, pickupHour, pickupPeriod) : null,
+      deliveryAddress: orderType === 'delivery' ? deliveryAddress : null,
+      contactNumber: orderType === 'takeAway' || orderType === 'delivery' ? contactNumber : null
     };
 
     try {
       setLoadingPay(true);
       setPayMessage(null);
-      const checkRes = await fetch(`https://railway.app/check_payment.php?phone=${payload.phone}&amount=${payload.amount}`);
-      const checkData = await checkRes.json();
-
-      if (checkData.status === 'Paid' && checkData.attended_to === 'No') {
-        const confirmPay = window.confirm(
-          "You already paid for this. If you continue to pay, the number of this product you will receive will increase. Do you want to proceed?"
-        );
-        if (!confirmPay) return;
-      }
-      const pushRes = await fetch('https://railway.app', {
+      
+      const pushRes = await fetch(`${apiUrl}/stk-push.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, customerId, productId, amount, phoneNumber })
+        body: JSON.stringify(payload)
       });
+
       const pushData = await pushRes.json();
-      alert(pushData.message);
+
+      if (pushData.status === 'success') {
+        setPayMessage({ type: 'success', text: 'STK prompt sent! Check your phone.' });
+        setTimeout(() => {
+          setPaymentNumber('');
+          setCheckoutIndex(null);
+        }, 2000);
+      } else {
+        setPayMessage({ type: 'error', text: pushData.message || 'Payment initiation failed' });
+      }
 
     } catch (error) {
       console.error("Error processing request:", error);
+      setPayMessage({ type: 'error', text: 'Network error: ' + error.message });
+    } finally {
+      setLoadingPay(false);
     }
   };
 
@@ -306,7 +352,37 @@ export default function Mycart() {
                         )}
                         {orderType === 'takeAway' && (
                           <div>
-                            <input type="text" placeholder="Enter pickup time" value={pickupTime} onChange={handlePickupTimeChange} />
+                            <div className="checkout-row">
+                              <label htmlFor="pickupDay" className="checkout-label">Pickup Day</label>
+                              <select id="pickupDay" value={pickupDay} onChange={(e) => setPickupDay(e.target.value)}>
+                                {getAvailablePickupDays().map((day) => (
+                                  <option key={day} value={day}>{day}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="checkout-row pickup-time-row">
+                              <div>
+                                <label htmlFor="pickupHour" className="checkout-label">Pickup Time</label>
+                                <select id="pickupHour" value={pickupHour} onChange={(e) => setPickupHour(e.target.value)}>
+                                  {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                                    <option key={hour} value={hour}>{hour}:00</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label htmlFor="pickupPeriod" className="checkout-label">AM / PM</label>
+                                <select id="pickupPeriod" value={pickupPeriod} onChange={(e) => setPickupPeriod(e.target.value)}>
+                                  <option value="AM">AM</option>
+                                  <option value="PM">PM</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <p className="pickup-summary">
+                              Selected pickup: {buildPickupDateTime(pickupDay, pickupHour, pickupPeriod) || 'Choose a valid future time'}
+                            </p>
+
                             <label>Contact Of the Picker</label>
                             <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
                           </div>
