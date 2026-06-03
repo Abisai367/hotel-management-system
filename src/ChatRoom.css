@@ -62,7 +62,7 @@
 
 .chat-room__title {
   margin: 0;
-  font-size: clamp(18px, 5vw, 22px);
+  font-size: clamp(28px, 5vw, 32px);
   font-weight: 700;
   flex: 1;
   min-width: 120px;
@@ -74,7 +74,7 @@
   color: #fff;
   padding: 6px 10px;
   border-radius: 16px;
-  font-size: 0.75rem;
+  font-size: 90px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -699,7 +699,7 @@
 
   .chat-room__composer {
     position: fixed;
-    bottom: 0;
+    bottom: 10px;
     left: 0;
     right: 0;
     width: 100%;

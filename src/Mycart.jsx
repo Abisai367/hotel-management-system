@@ -150,24 +150,25 @@ export default function Mycart() {
     try {
       setLoadingPay(true);
       setPayMessage(null);
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://fivestarhotel.rf.gd/api';
-      const res = await fetch(`${apiUrl}/stkpush.php`, {
+      const checkRes = await fetch(`https://railway.app/check_payment.php?phone=${payload.phone}&amount=${payload.amount}`);
+      const checkData = await checkRes.json();
+
+      if (checkData.status === 'Paid' && checkData.attended_to === 'No') {
+        const confirmPay = window.confirm(
+          "You already paid for this. If you continue to pay, the number of this product you will receive will increase. Do you want to proceed?"
+        );
+        if (!confirmPay) return;
+      }
+      const pushRes = await fetch('https://railway.app', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ orderId, customerId, productId, amount, phoneNumber })
       });
-      const data = await res.json();
-      if (data.status === 'success') {
-        setPayMessage({ type: 'success', text: data.message || 'Payment initiated. Check your phone.' });
-        await loadDatabaseCart();
-        setCheckoutIndex(null);
-      } else {
-        setPayMessage({ type: 'error', text: data.message || 'Payment failed to start' });
-      }
-    } catch (err) {
-      setPayMessage({ type: 'error', text: 'Unable to reach server. Try again later.' });
-    } finally {
-      setLoadingPay(false);
+      const pushData = await pushRes.json();
+      alert(pushData.message);
+
+    } catch (error) {
+      console.error("Error processing request:", error);
     }
   };
 
