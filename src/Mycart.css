@@ -38,9 +38,6 @@
   box-shadow: 0 2px 8px var(--shadow-color);
   margin-bottom: 16px;
   border: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 40;
 }
 
 @media (min-width: 481px) {
@@ -1091,11 +1088,21 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .primary-button {
   background: var(--primary-color, #0b4a46);
   color: #ffffff;
+}
+
+.primary-button.outline {
+  background: transparent;
+  border: 1px solid var(--primary-color, #0b4a46);
+  color: var(--primary-color, #0b4a46);
 }
 
 .primary-button:hover {
@@ -1376,6 +1383,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
 }
 
 .checkout-row {
@@ -1402,6 +1410,7 @@
   background: var(--input-bg, #ffffff);
   font-size: 14pt;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .checkout-panel select {
@@ -1429,6 +1438,10 @@
 .checkout-actions .primary-button {
   min-width: 160px;
   padding: 10px 14px;
+}
+
+.checkout-actions .secondary-button {
+  min-width: 140px;
 }
 
 .error-message {
@@ -1461,5 +1474,6 @@
   .checkout-actions .primary-button,
   .checkout-actions .secondary-button {
     width: 100%;
+    min-width: auto;
   }
 }

@@ -17,6 +17,7 @@ api
 dist
 dist-ssr
 *.local
+*.production
 .env.local
 .env.production
 

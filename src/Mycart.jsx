@@ -24,6 +24,44 @@ export default function Mycart() {
   const [payMessage, setPayMessage] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
+  const [pickupDay, setPickupDay] = useState("");
+  const [pickupHour, setPickupHour] = useState("12");
+  const [pickupPeriod, setPickupPeriod] = useState("PM");
+
+  const getAvailablePickupDays = () => {
+    const today = new Date();
+    const days = [];
+    for (let i = 0; i < 3; i += 1) {
+      const day = new Date(today);
+      day.setDate(today.getDate() + i);
+      const year = day.getFullYear();
+      const month = `${day.getMonth() + 1}`.padStart(2, '0');
+      const date = `${day.getDate()}`.padStart(2, '0');
+      days.push(`${year}-${month}-${date}`);
+    }
+    return days;
+  };
+
+  const buildPickupDateTime = (day, hour, period) => {
+    if (!day || !hour || !period) return null;
+    const normalizedHour = Number(hour);
+    if (Number.isNaN(normalizedHour) || normalizedHour < 1 || normalizedHour > 12) return null;
+    let hour24 = normalizedHour % 12;
+    if (period === 'PM') hour24 += 12;
+    const dateTime = new Date(`${day}T${hour24.toString().padStart(2, '0')}:00:00`);
+    if (Number.isNaN(dateTime.getTime())) return null;
+    return `${dateTime.getFullYear()}-${String(dateTime.getMonth() + 1).padStart(2, '0')}-${String(dateTime.getDate()).padStart(2, '0')} ${String(dateTime.getHours()).padStart(2, '0')}:${String(dateTime.getMinutes()).padStart(2, '0')}:00`;
+  };
+
+  useEffect(() => {
+    if (!pickupDay) {
+      const days = getAvailablePickupDays();
+      if (days.length > 0) {
+        setPickupDay(days[0]);
+      }
+    }
+  }, []);
+
 
   const handleTableNumberChange = (e) => {
     setTableNumber(e.target.value);
@@ -40,6 +78,7 @@ export default function Mycart() {
   const handlePaymentNumberChange = (e) => {
     setPaymentNumber(e.target.value);
   }
+
   const total = myCart.reduce(
     (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1),
     0
@@ -128,6 +167,7 @@ export default function Mycart() {
 
   const handleBuy = (indexToBuy) => {
     setCheckoutIndex(indexToBuy);
+    setPayMessage(null);
   };
 
   const handlePay = async () => {
@@ -174,6 +214,11 @@ export default function Mycart() {
       normalizedPhone = '254' + normalizedPhone.substring(1);
     } else if (!normalizedPhone.startsWith('254')) {
       normalizedPhone = '254' + normalizedPhone;
+    }
+
+    if (!/^254\d{9}$/.test(normalizedPhone)) {
+      setPayMessage({ type: 'error', text: 'Payment number must be 254XXXXXXXXX' });
+      return;
     }
 
     const payload = {
