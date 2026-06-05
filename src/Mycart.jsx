@@ -170,6 +170,11 @@ export default function Mycart() {
     setPayMessage(null);
   };
 
+  const handleBuyAll = () => {
+    setCheckoutIndex('all');
+    setPayMessage(null);
+  };
+
   const handlePay = async () => {
     if (!paymentNumber || paymentNumber.trim().length < 9) {
       setPayMessage({ type: 'error', text: 'Enter a valid phone number' });
@@ -221,11 +226,27 @@ export default function Mycart() {
       return;
     }
 
+    // determine whether paying for a single item or all items
+    let itemsToSend = myCart;
+    let amountToSend = Math.round(total);
+    if (checkoutIndex === 'all') {
+      itemsToSend = myCart;
+      amountToSend = Math.round(total);
+    } else if (typeof checkoutIndex === 'number') {
+      const single = myCart[checkoutIndex];
+      if (single) {
+        const qty = Number(single.quantity || 1);
+        const price = Number(single.price || 0);
+        itemsToSend = [{ ...single, quantity: qty }];
+        amountToSend = Math.round(price * qty);
+      }
+    }
+
     const payload = {
       phone: normalizedPhone,
-      amount: Math.round(total),
+      amount: amountToSend,
       customerId: customerId,
-      items: myCart,
+      items: itemsToSend,
       orderType,
       tableNumber,
       pickupTime: orderType === 'takeAway' ? buildPickupDateTime(pickupDay, pickupHour, pickupPeriod) : null,
@@ -317,9 +338,93 @@ export default function Mycart() {
       ) : (
         <section className="cart-items-panel">
           <div className="cart-section-heading">
-            <h2>Items in Cart</h2>
-            <p>Update item quantities and proceed to checkout.</p>
+            <div>
+              <h2>Items in Cart</h2>
+              <p>Update item quantities and proceed to checkout.</p>
+            </div>
+            <div className="cart-heading-actions">
+              <button type="button" className="primary-button pay-all-button" onClick={handleBuyAll} disabled={myCart.length === 0}>
+                Pay All
+              </button>
+            </div>
           </div>
+
+          {checkoutIndex === 'all' && (
+            <div className="checkout-panel">
+              <div className="checkout-row">
+                <label htmlFor="orderType" className="checkout-label">Order Type</label>
+                <select id="orderType" value={orderType} onChange={(e) => setOrderType(e.target.value)}>
+                  <option value="dineIn">Dine In</option>
+                  <option value="takeAway">Take Away</option>
+                  <option value="delivery">Delivery</option>
+                </select>
+              </div>
+
+              {orderType === 'dineIn' && (
+                <input type="text" placeholder="Enter table number" value={tableNumber} onChange={handleTableNumberChange} />
+              )}
+              {orderType === 'takeAway' && (
+                <div>
+                  <div className="checkout-row">
+                    <label htmlFor="pickupDay" className="checkout-label">Pickup Day</label>
+                    <select id="pickupDay" value={pickupDay} onChange={(e) => setPickupDay(e.target.value)}>
+                      {getAvailablePickupDays().map((day) => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="checkout-row pickup-time-row">
+                    <div>
+                      <label htmlFor="pickupHour" className="checkout-label">Pickup Time</label>
+                      <select id="pickupHour" value={pickupHour} onChange={(e) => setPickupHour(e.target.value)}>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                          <option key={hour} value={hour}>{hour}:00</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="pickupPeriod" className="checkout-label">AM / PM</label>
+                      <select id="pickupPeriod" value={pickupPeriod} onChange={(e) => setPickupPeriod(e.target.value)}>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <p className="pickup-summary">
+                    Selected pickup: {buildPickupDateTime(pickupDay, pickupHour, pickupPeriod) || 'Choose a valid future time'}
+                  </p>
+
+                  <label>Contact Of the Picker</label>
+                  <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
+                </div>
+              )}
+              {orderType === 'delivery' && (
+                <div>
+                  <input type="text" placeholder="Enter delivery address" value={deliveryAddress} onChange={handleDeliveryAddressChange} />
+                  <label>Contact Of the Receiver</label>
+                  <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
+                </div>
+              )}
+
+              <div className="payment-number">
+                <label>Payment Number</label>
+                <input type="text" placeholder="Enter payment number" value={paymentNumber} onChange={handlePaymentNumberChange} />
+              </div>
+
+              <div className="checkout-actions">
+                <button type="button" className="secondary-button" onClick={() => setCheckoutIndex(null)} disabled={loadingPay}>Cancel</button>
+                <button type="button" className="primary-button" onClick={handlePay} disabled={loadingPay}>
+                  {loadingPay ? 'Processing…' : `Pay ${formatCurrency(total)}`}
+                </button>
+              </div>
+
+              {payMessage && (
+                <p className={payMessage.type === 'error' ? 'error-message' : 'success-message'}>{payMessage.text}</p>
+              )}
+            </div>
+          )}
           <ul className="cart-items">
             {myCart.map((item, index) => {
               const price = Number(item.price || 0);
@@ -448,7 +553,7 @@ export default function Mycart() {
                         <div className="checkout-actions">
                           <button type="button" className="secondary-button" onClick={() => setCheckoutIndex(null)} disabled={loadingPay}>Cancel</button>
                           <button type="button" className="primary-button" onClick={handlePay} disabled={loadingPay}>
-                            {loadingPay ? 'Processing…' : `Pay ${formatCurrency(total)}`}
+                            {loadingPay ? 'Processing…' : `Pay ${formatCurrency(subtotal)}`}
                           </button>
                         </div>
 
