@@ -1,0 +1,28 @@
+.admin-dashboard {
+  padding: 20px;
+}
+.admin-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.admin-hero-title {
+  font-size: 24pt;
+  font-weight: 700;
+}
+.admin-hero-cards { display:flex; gap:12px; }
+.card { background: var(--card-bg,#fff); padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card-label { font-size: 12px; color: var(--text-light,#6b7280); }
+.card-value { font-size: 20pt; font-weight:700; color: var(--primary-color,#0b4a46); }
+.admin-grid { display:grid; grid-template-columns: 1fr 320px; gap: 16px; }
+.panel { background: var(--card-bg,#fff); padding: 12px; border-radius: 10px; }
+.trend-item, .employee-item { display:flex; gap:12px; align-items:center; padding:8px 0; }
+.trend-item img, .employee-item img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
+.trend-name, .emp-name { font-weight:700; }
+.trend-count, .emp-role { color:var(--text-light,#6b7280); font-size:13px; }
+
+@media (max-width: 900px) {
+  .admin-grid { grid-template-columns: 1fr; }
+  .admin-hero { flex-direction:column; align-items:stretch; }
+}

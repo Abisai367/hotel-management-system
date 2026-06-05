@@ -7,6 +7,7 @@ import Mycart from './Mycart.jsx';
 import Login from './Login.jsx';
 import SignUp from './SignUp.jsx';
 import AddEmployee from './AddEmployee.jsx';
+import AdminDashboard from './AdminDashboard.jsx';
 import ChatRoom from './ChatRoom.jsx';
 import ErrorScreen from './ErrorScreen.jsx';
 import { MyCart } from './CartContext';
@@ -148,6 +149,10 @@ function App() {
               <Route 
                 path="/upload" 
                 element={isAuthenticated() && isStrictAdmin() ? <UploadCategories /> : <Navigate to="/login" />} 
+              />
+              <Route 
+                path="/admin" 
+                element={isAuthenticated() && isStrictAdmin() ? <AdminDashboard /> : <Navigate to="/login" />} 
               />
               <Route 
                 path="/add-employee" 

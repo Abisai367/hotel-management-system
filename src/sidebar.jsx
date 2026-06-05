@@ -107,6 +107,9 @@ export default function Sidebar() {
             <Link to="/categories"><li className="nav-item"><FaUtensils className="nav-icon"/> Foods</li></Link>
             <Link to="/MyCart"><li className="nav-item"><FaFileInvoice className="nav-icon"/> My Cart</li></Link>
             {isAdmin && (
+              <Link to="/admin"><li className="nav-item"><FaThLarge className="nav-icon"/> Dashboard</li></Link>
+            )}
+            {isAdmin && (
               <Link to="/upload"><li className="nav-item"><FaPlus className="nav-icon"/> Add Product</li></Link>
             )}
             {isAdmin && (
