@@ -8,6 +8,7 @@ import Login from './Login.jsx';
 import SignUp from './SignUp.jsx';
 import AddEmployee from './AddEmployee.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
+import ManageEmployees from './ManageEmployees.jsx';
 import ChatRoom from './ChatRoom.jsx';
 import ErrorScreen from './ErrorScreen.jsx';
 import { MyCart } from './CartContext';
@@ -157,6 +158,10 @@ function App() {
               <Route 
                 path="/add-employee" 
                 element={isAuthenticated() && isStrictAdmin() ? <AddEmployee /> : <Navigate to="/login" />} 
+              />
+              <Route 
+                path="/manage-employees" 
+                element={isAuthenticated() && isStrictAdmin() ? <ManageEmployees /> : <Navigate to="/login" />} 
               />
               <Route path="/messages" element={isAuthenticated() ? <ChatRoom /> : <Navigate to="/login" />} />
               <Route path="/service-unavailable" element={<ErrorScreen code={503} />} />

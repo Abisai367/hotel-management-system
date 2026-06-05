@@ -25,4 +25,20 @@
 @media (max-width: 900px) {
   .admin-grid { grid-template-columns: 1fr; }
   .admin-hero { flex-direction:column; align-items:stretch; }
+  @media (max-width: 900px) {
+    .admin-hero { flex-direction: column; align-items: flex-start; }
+    .admin-hero-cards { width: 100%; display: flex; gap: 8px; }
+    .admin-grid { grid-template-columns: 1fr; }
+    .chart-panel { height: 260px; }
+    .pie-wrap { height: 220px; }
+    .card { min-width: unset; flex: 1; }
+  }
+
+  @media (max-width: 480px) {
+    .admin-hero-title { font-size: 18px; }
+    .card-value { font-size: 16px; }
+    .chart-panel { height: 220px; }
+    .pie-wrap { height: 180px; }
+    .manage-actions button { font-size: 13px; padding: 8px 10px; }
+  }
 }

@@ -22,6 +22,7 @@ export default function Mycart() {
   const [orderType, setOrderType] = useState('dineIn');
   const [loadingPay, setLoadingPay] = useState(false);
   const [payMessage, setPayMessage] = useState(null);
+  const [paymentSession, setPaymentSession] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
   const [pickupDay, setPickupDay] = useState("");
@@ -267,11 +268,9 @@ export default function Mycart() {
       const pushData = await pushRes.json();
 
       if (pushData.status === 'success') {
-        setPayMessage({ type: 'success', text: 'STK prompt sent! Check your phone.' });
-        setTimeout(() => {
-          setPaymentNumber('');
-          setCheckoutIndex(null);
-        }, 2000);
+        // Keep the payment session so user can check status explicitly
+        setPaymentSession({ checkoutRequestID: pushData.checkoutRequestID || pushData.checkoutRequestId || null, orderId: pushData.orderId || null });
+        setPayMessage({ type: 'info', text: 'STK prompt sent. Click "Check payment" when you finish.' });
       } else {
         setPayMessage({ type: 'error', text: pushData.message || 'Payment initiation failed' });
       }
@@ -283,6 +282,43 @@ export default function Mycart() {
       setLoadingPay(false);
     }
   };
+
+    const checkPayment = async () => {
+      if (!paymentSession) return;
+      const idPart = paymentSession.orderId ? `orderId=${paymentSession.orderId}` : `checkoutRequestID=${encodeURIComponent(paymentSession.checkoutRequestID)}`;
+      try {
+        setLoadingPay(true);
+        const res = await fetch(`${apiUrl}/check_payment.php?${idPart}`);
+        const json = await res.json();
+        if (json.status === 'success') {
+          const status = json.paymentStatus || json.transaction?.result_code === 0 ? 'Paid' : (json.paymentStatus || 'Pending');
+          if (status === 'Paid') {
+            setPayMessage({ type: 'success', text: 'Payment confirmed. Thank you!' });
+            // Refresh cart and reset state
+            await loadDatabaseCart();
+            setPaymentNumber('');
+            setCheckoutIndex(null);
+            setPaymentSession(null);
+          } else if (status === 'Failed') {
+            setPayMessage({ type: 'error', text: 'Payment failed or cancelled.' });
+          } else {
+            setPayMessage({ type: 'info', text: 'Payment still pending. Try again in a few seconds.' });
+          }
+        } else {
+          setPayMessage({ type: 'error', text: json.message || 'Unable to check payment' });
+        }
+      } catch (err) {
+        console.error('checkPayment error', err);
+        setPayMessage({ type: 'error', text: 'Network error when checking payment.' });
+      } finally {
+        setLoadingPay(false);
+      }
+    };
+
+    const cancelPayment = () => {
+      setPaymentSession(null);
+      setPayMessage({ type: 'info', text: 'Payment check cancelled.' });
+    };
 
 
 
@@ -324,6 +360,16 @@ export default function Mycart() {
       </section>
       {cartLoading && <p className="loading-text">Loading cart...</p>}
       {cartError && <p className="error-message">{cartError}</p>}
+
+      {paymentSession && (
+        <div className="payment-session-panel">
+          <p>Payment session started. Checkout ID: {paymentSession.checkoutRequestID || '—'}</p>
+          <div className="payment-session-actions">
+            <button className="secondary-button" onClick={checkPayment} disabled={loadingPay}>Check payment</button>
+            <button className="secondary-button" onClick={cancelPayment} disabled={loadingPay}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {myCart.length === 0 ? (
         <section className="empty-cart-panel">

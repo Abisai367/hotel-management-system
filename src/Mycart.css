@@ -1190,6 +1190,39 @@
   }
 }
 
+/* Mobile adjustments: compact buttons, larger readable text, tighter spacing */
+@media (max-width: 480px) {
+  .item-actions button {
+    min-width: 84px;
+    padding: 6px 10px;
+    font-size: 16px;
+    border-radius: 6px;
+  }
+
+  .quantity-button {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .quantity-value { font-size: 15px; min-width: 36px; }
+
+  .page-badge { padding: 8px 12px; font-size: 13px; }
+  .my-cart-header h1 { font-size: 20px; }
+  .item-top h3 { font-size: 16px; }
+  .item-description { font-size: 14px; }
+  .item-price-large { font-size: 16px; }
+
+  .cart-items-panel { padding: 16px; }
+  .cart-item { padding: 12px; gap: 10px; }
+  .item-media img, .product-image-placeholder { height: 180px; }
+
+  .checkout-actions .primary-button, .checkout-actions .secondary-button {
+    padding: 8px 10px;
+    font-size: 16px;
+  }
+}
+
 .primary-button.outline:hover {
   background: var(--primary-color, #0b4a46);
   color: #ffffff;

@@ -12,12 +12,19 @@ export default function UploadCategories(){
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [showDeletePane, setShowDeletePane] = useState(false);
+    const [showAddPane, setShowAddPane] = useState(true);
+    const [showCustomizePane, setShowCustomizePane] = useState(false);
     const [formMessage, setFormMessage] = useState("");
     const baseUrl = import.meta.env.BASE_URL || '/';
     const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
     const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
     const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
     const [deleteByName, setDeleteByName] = useState("");
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [editName, setEditName] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [editPrice, setEditPrice] = useState('');
+    const [editPath, setEditPath] = useState('');
 
     const fetchProducts = async () => {
         try {
@@ -219,8 +226,14 @@ export default function UploadCategories(){
     return(
         <div className="upload-container">
             <div className="upload-content">
-                <h1 className="upload-title">ADD NEW PRODUCT</h1>
-                <form className="upload-form" onSubmit={handleSubmit}>
+                <h1 className="upload-title">MANAGE PRODUCTS</h1>
+                <div className="manage-actions">
+                    <button className={`btn btn-primary ${showAddPane? 'active' : ''}`} onClick={() => { setShowAddPane(true); setShowDeletePane(false); setShowCustomizePane(false); }}>ADD PRODUCTS</button>
+                    <button className={`btn btn-secondary ${showDeletePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(true); setShowCustomizePane(false); }}>DELETE PRODUCT</button>
+                    <button className={`btn btn-secondary ${showCustomizePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(false); setShowCustomizePane(true); }}>CUSTOMIZE PRODUCTS</button>
+                </div>
+                {showAddPane && (
+                    <form className="upload-form" onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor='product-name'>Enter Product Name <span className="required">*</span></label>
                         <input type="text" maxLength={30} id="product-name" value={product_name} name="product_name" placeholder="example Burger" onChange={productName}/>
@@ -247,11 +260,178 @@ export default function UploadCategories(){
                     </div>
 
                     <div className="form-actions">
-                        <button type="submit" className="btn btn-primary">ADD PRODUCT</button>
+                        <button type="submit" className="btn btn-primary">{product_name ? 'Save Product' : 'ADD PRODUCT'}</button>
                         <Link to="/categories" className="btn btn-secondary">View Categories</Link>
                     </div>
+                    </form>
+                )}
+                {showDeletePane && (
+                    <div className="delete-admin-toolbar">
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setShowDeletePane((prev) => !prev)}
+                        >
+                            {showDeletePane ? 'Hide delete selection' : 'Select item to delete'}
+                        </button>
+                    </div>
+                )}
+                {showCustomizePane && (
+                    <div className="customize-pane">
+                        <div className="product-management">
+                            <div className="product-management-header">
+                                <h2>Edit Products</h2>
+                                <p>Click <strong>Edit</strong> on any product to modify its details.</p>
+                            </div>
+
+                            {isLoadingProducts ? (
+                                <p className="loading-text">Loading products...</p>
+                            ) : productList.length === 0 ? (
+                                <p className="empty-text">No products available. Add products using the "ADD PRODUCTS" tab.</p>
+                            ) : (
+                                <div className="product-grid-admin">
+                                    {productList.map((p) => (
+                                        <div className="product-card" key={p.product_id}>
+                                            <div className="product-card-image">
+                                                {p.product_path ? <img src={p.product_path} alt={p.product_name} /> : <div className="product-image-placeholder" />}
+                                            </div>
+                                            <div className="product-card-body">
+                                                <div>
+                                                    <h3>{p.product_name}</h3>
+                                                    <p>{p.description}</p>
+                                                    <p className="card-price">Kshs. {p.price}</p>
+                                                </div>
+                                                <div className="product-card-meta">
+                                                    <button className="btn btn-primary" onClick={() => {
+                                                        setEditingProduct(p);
+                                                        setEditName(p.product_name || '');
+                                                        setEditDesc(p.description || '');
+                                                        setEditPrice(p.price || '');
+                                                        setEditPath(p.product_path || '');
+                                                    }}>Edit This Product</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {editingProduct && (
+                            <div className="edit-product-panel">
+                                <div className="edit-product-header">
+                                    <h2>Editing: {editingProduct.product_name}</h2>
+                                    <button className="close-edit-btn" onClick={() => setEditingProduct(null)}>✕</button>
+                                </div>
+                                
+                                <div className="edit-form-container">
+                                    <div className="edit-form-section">
+                                        <label htmlFor="edit-name">Product Name</label>
+                                        <input 
+                                            id="edit-name"
+                                            type="text" 
+                                            value={editName} 
+                                            onChange={(e) => setEditName(e.target.value)}
+                                            placeholder="Enter product name"
+                                        />
+                                    </div>
+
+                                    <div className="edit-form-section">
+                                        <label htmlFor="edit-desc">Description</label>
+                                        <textarea 
+                                            id="edit-desc"
+                                            value={editDesc} 
+                                            onChange={(e) => setEditDesc(e.target.value)}
+                                            placeholder="Enter product description"
+                                            rows="4"
+                                        />
+                                    </div>
+
+                                    <div className="edit-form-section">
+                                        <label htmlFor="edit-price">Price (Kshs.)</label>
+                                        <input 
+                                            id="edit-price"
+                                            type="number" 
+                                            min="0"
+                                            step="0.01"
+                                            value={editPrice} 
+                                            onChange={(e) => setEditPrice(e.target.value)}
+                                            placeholder="Enter product price"
+                                        />
+                                    </div>
+
+                                    <div className="edit-form-section">
+                                        <label htmlFor="edit-image">Image URL</label>
+                                        <input 
+                                            id="edit-image"
+                                            type="text"
+                                            value={editPath} 
+                                            onChange={(e) => setEditPath(e.target.value)}
+                                            placeholder="Enter image URL from Cloudinary"
+                                        />
+                                        {editPath && (
+                                            <div className="image-preview-edit">
+                                                <img src={editPath} alt="Preview" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="edit-form-actions">
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={async () => {
+                                                if (!editName.trim()) {
+                                                    setFormMessage('Product name is required');
+                                                    return;
+                                                }
+                                                if (!editPrice || parseFloat(editPrice) < 0) {
+                                                    setFormMessage('Price must be a valid positive number');
+                                                    return;
+                                                }
+                                                try {
+                                                    const body = { 
+                                                        id: editingProduct.product_id, 
+                                                        product_name: editName, 
+                                                        description: editDesc, 
+                                                        price: parseFloat(editPrice), 
+                                                        product_path: editPath 
+                                                    };
+                                                    const res = await fetch(`${apiUrl}/update_product.php`, { 
+                                                        method: 'POST', 
+                                                        headers: { 'Content-Type': 'application/json' }, 
+                                                        body: JSON.stringify(body) 
+                                                    });
+                                                    const j = await res.json();
+                                                    if (j.status === 'success') {
+                                                        setFormMessage('✓ Product updated successfully');
+                                                        setTimeout(() => {
+                                                            setEditingProduct(null);
+                                                            fetchProducts();
+                                                        }, 500);
+                                                    } else {
+                                                        setFormMessage('Error: ' + (j.message || 'Update failed'));
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    setFormMessage('Network error: ' + err.message);
+                                                }
+                                            }}
+                                        >
+                                            Save Changes
+                                        </button>
+                                        <button 
+                                            className="btn btn-secondary" 
+                                            onClick={() => setEditingProduct(null)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
                     {formMessage && <p className="form-message">{formMessage}</p>}
-                </form>
                 <div className="product-management">
                     <div className="product-management-header">
                         <h2>Admin Product Management</h2>
