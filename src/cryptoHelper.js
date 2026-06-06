@@ -53,7 +53,6 @@ export const decryptMessage = async (ciphertext, ivString, senderId, receiverId)
 
     return new TextDecoder().decode(decryptedBuffer);
   } catch (err) {
-    console.error(err);
-    return "[Message could not be decrypted]";
+    return "[Unable to read message]";
   }
 };

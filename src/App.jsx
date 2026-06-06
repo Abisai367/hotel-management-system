@@ -40,7 +40,6 @@ function App() {
         setMyCart([]);
       }
     } catch (error) {
-      console.error('Unable to load user cart:', error);
       setMyCart([]);
     }
   };

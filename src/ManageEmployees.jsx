@@ -25,9 +25,9 @@ export default function ManageEmployees(){
       .then(r=>r.json())
       .then(j=>{
         if (j.status === 'success') setEmployees(j.employees || []);
-        else setMessage('Failed to load employees');
+        else setMessage('Unable to load employees. Please refresh the page.');
       })
-      .catch(e=>{ console.error(e); setMessage('Network error'); })
+      .catch(() => { setMessage('Unable to load employees. Please try again later.'); })
       .finally(()=>setLoading(false));
   }
 
@@ -57,7 +57,7 @@ export default function ManageEmployees(){
     }).then(r=>r.json()).then(j=>{
       if (j.status==='success'){ setMessage('Saved'); fetchEmployees(); setMode('list'); }
       else setMessage(j.message || 'Save failed');
-    }).catch(e=>{ console.error(e); setMessage('Network error'); });
+    }).catch(() => { setMessage('Unable to contact the server. Please try again later.'); });
   }
 
   function unemploy(id){
@@ -69,7 +69,7 @@ export default function ManageEmployees(){
     }).then(r=>r.json()).then(j=>{
       if (j.status==='success'){ setMessage('Employee unemployed successfully'); fetchEmployees(); setMode('list'); }
       else setMessage(j.message || 'Operation failed');
-    }).catch(e=>{ console.error(e); setMessage('Network error'); });
+    }).catch(() => { setMessage('Unable to contact the server. Please try again later.'); });
   }
 
   function addEmployee(){
@@ -86,7 +86,7 @@ export default function ManageEmployees(){
       .then(r=>r.json()).then(j=>{
         if (j.status==='success'){ setMessage('Employee added'); fetchEmployees(); setForm({full_name:'',phone:'',role:'Employee',shift_schedule:'',salary:''}); setMode('list'); }
         else setMessage(j.message || 'Add failed');
-      }).catch(e=>{ console.error(e); setMessage('Network error'); });
+      }).catch(() => { setMessage('Unable to contact the server. Please try again later.'); });
   }
 
   return (

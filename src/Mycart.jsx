@@ -104,7 +104,6 @@ export default function Mycart() {
         setMyCart([]);
       }
     } catch (err) {
-      console.error('Cart loading exception:', err);
       setCartError('Unable to load cart. Please refresh the page.');
       setMyCart([]);
     } finally {
@@ -133,8 +132,7 @@ export default function Mycart() {
         setCartError(data.message || 'Unable to remove item.');
       }
     } catch (err) {
-      console.error(err);
-      setCartError('Unable to remove item from cart.');
+      setCartError('Unable to remove item from cart. Please try again later.');
     }
   };
 
@@ -276,8 +274,7 @@ export default function Mycart() {
       }
 
     } catch (error) {
-      console.error("Error processing request:", error);
-      setPayMessage({ type: 'error', text: 'Network error: ' + error.message });
+      setPayMessage({ type: 'error', text: 'Unable to start payment. Please try again later.' });
     } finally {
       setLoadingPay(false);
     }
@@ -308,8 +305,7 @@ export default function Mycart() {
           setPayMessage({ type: 'error', text: json.message || 'Unable to check payment' });
         }
       } catch (err) {
-        console.error('checkPayment error', err);
-        setPayMessage({ type: 'error', text: 'Network error when checking payment.' });
+        setPayMessage({ type: 'error', text: 'Unable to verify payment status right now. Please try again later.' });
       } finally {
         setLoadingPay(false);
       }

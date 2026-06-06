@@ -90,7 +90,7 @@ export default function ChatRoom() {
         fd.append('receiver_id', currentUserId);
         await fetch(`${apiUrl}/mark_message_read.php`, { method: 'POST', body: fd });
       } catch (err) {
-        console.error('Error marking message as read:', err);
+        // Ignore read-status errors silently for the user.
       }
     }
   };
@@ -128,8 +128,7 @@ export default function ChatRoom() {
         setChatList([]);
       }
     } catch (err) {
-      console.error('Chat list error:', err);
-      setErrorMessage('Unable to load chats. Please refresh.');
+      setErrorMessage('Unable to load chats. Please refresh the page.');
     }
   };
 
@@ -173,8 +172,7 @@ export default function ChatRoom() {
         setErrorMessage(data.message || 'Unable to find contact.');
       }
     } catch (err) {
-      console.error('Contact error:', err);
-      setErrorMessage('Failed to verify contact. Try again.');
+      setErrorMessage('Unable to verify contact. Please try again.');
     }
   };
 
@@ -198,8 +196,7 @@ export default function ChatRoom() {
         setChatHistory([]);
       }
     } catch (err) {
-      console.error('Conversation error:', err);
-      setErrorMessage('Unable to load messages.');
+      setErrorMessage('Unable to load messages. Please try again.');
     }
   };
 
@@ -259,8 +256,7 @@ export default function ChatRoom() {
         setErrorMessage(data.message || 'Failed to send message.');
       }
     } catch (err) {
-      console.error('Send error:', err);
-      setErrorMessage('Unable to send message. Try again.');
+      setErrorMessage('Unable to send message. Please try again.');
     }
   };
 

@@ -22,10 +22,10 @@ export default function AdminDashboard() {
         setData(json);
         setError(null);
       } else {
-        setError(json.message || 'Failed to load summary');
+        setError('We could not load dashboard data. Please try again later.');
       }
     } catch (e) {
-      setError(e.message);
+      setError('We could not load dashboard data. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -56,22 +56,11 @@ export default function AdminDashboard() {
 
   if (loading) return <div className="admin-loading">Loading dashboard…</div>;
   if (error) {
-    const isStaticHost = typeof window !== 'undefined' && /github\.io$/i.test(window.location.hostname);
-    const fetchProblem = String(error || '').toLowerCase().includes('failed to fetch') || String(error || '').includes('500');
     return (
       <div className="admin-error">
-        <div style={{marginBottom:12}}>Error: {error}</div>
-        {isStaticHost || fetchProblem ? (
-          <div>
-            <p>The admin dashboard needs the PHP backend to be reachable.</p>
-            <p style={{fontSize:13}}>Possible fixes:</p>
-            <ul style={{fontSize:13}}>
-              <li>Host the app on a PHP-capable server (XAMPP/WAMP/Apache) and serve the built files together with the <strong>api/</strong> folder.</li>
-              <li>Or deploy your PHP backend separately and rebuild the frontend with <code>VITE_API_URL</code> set to the backend base URL (e.g. <code>VITE_API_URL=https://your-backend.com/api</code>).</li>
-            </ul>
-            <p style={{fontSize:13}}>See the project README for deployment details.</p>
-          </div>
-        ) : null}
+        <div className="admin-error-message">
+          We're unable to load the dashboard right now. Please refresh the page or try again later.
+        </div>
       </div>
     );
   }

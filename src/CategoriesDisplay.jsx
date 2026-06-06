@@ -44,8 +44,7 @@ const CategoryDisplay = () => {
         setMyCart([]);
       }
     } catch (err) {
-      console.error('Unable to load cart:', err);
-      setCartError('Could not load cart items.');
+      setCartError('Could not load cart items. Please try again later.');
       setMyCart([]);
     }
   };
@@ -67,7 +66,6 @@ const CategoryDisplay = () => {
         const data = await response.json();
         setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching products:', error);
         setProducts([]);
       } finally {
         setIsLoading(false);
@@ -117,7 +115,6 @@ const CategoryDisplay = () => {
         setCartError(data.message || 'Unable to add product to cart.');
       }
     } catch (err) {
-      console.error('Add to cart error:', err);
       setCartError('Unable to add item to cart. Please try again.');
     }
   };

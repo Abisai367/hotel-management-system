@@ -75,8 +75,7 @@ export default function AddEmployee() {
         const cloudJson = await cloudinaryResponse.json();
         uploadedProfileUrl = cloudJson.secure_url;
       } catch (cloudErr) {
-        console.error(cloudErr);
-        setFormMessage('Image upload failed. Registration aborted.');
+        setFormMessage('Unable to upload the photo. Please try again.');
         setIsSubmitting(false);
         return;
       }
@@ -124,8 +123,7 @@ export default function AddEmployee() {
         setFormMessage(data.message || 'Unable to register staff account.');
       }
     } catch (error) {
-      console.error('Add Employee API Error:', error);
-      setFormMessage('Unable to communicate with the server.');
+      setFormMessage('Unable to communicate with the server. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }

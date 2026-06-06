@@ -35,7 +35,6 @@ export default function UploadCategories(){
             const data = await response.json();
             setProductList(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Error fetching products:', error);
             setProductList([]);
             setFormMessage('Failed to load products. Please refresh the page.');
         } finally {
@@ -95,8 +94,7 @@ export default function UploadCategories(){
             const cloudJson = await cloudinaryResponse.json();
             uploadedImageUrl = cloudJson.secure_url; 
         } catch (cloudErr) {
-            console.error(cloudErr);
-            setFormMessage(`Image cloud storage failed: ${cloudErr.message}`);
+            setFormMessage('Unable to upload the image. Please try again.');
             return;
         }
 
@@ -131,7 +129,6 @@ export default function UploadCategories(){
             }
         }
         catch(error){
-            console.error(error);
             setFormMessage("Unable to communicate with the server. Please try again later.");
         }
     }
@@ -161,7 +158,6 @@ export default function UploadCategories(){
                 setFormMessage(result.message || 'Unable to delete product.');
             }
         } catch (error) {
-            console.error(error);
             setFormMessage('Delete request failed. Please try again later.');
         } finally {
             setDeleteLoading(null);
@@ -196,7 +192,6 @@ export default function UploadCategories(){
                 setFormMessage(result.message || 'Unable to delete product by name.');
             }
         } catch (error) {
-            console.error(error);
             setFormMessage('Delete request failed. Please try again later.');
         } finally {
             setDeleteLoading(null);
@@ -231,8 +226,7 @@ export default function UploadCategories(){
                 setFormMessage(j.message || 'Update failed');
             }
         } catch (err) {
-            console.error(err);
-            setFormMessage('Network error while updating product');
+            setFormMessage('Unable to update the product. Please try again later.');
         }
     };
 

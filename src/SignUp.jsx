@@ -61,8 +61,7 @@ export default function SignUp() {
         const cloudJson = await cloudinaryResponse.json();
         uploadedProfileUrl = cloudJson.secure_url;
       } catch (cloudErr) {
-        console.error(cloudErr);
-        setFormMessage('Profile image upload failed. Registration aborted.');
+        setFormMessage('Unable to upload the profile image. Please try again.');
         setIsSubmitting(false);
         return;
       }
@@ -103,8 +102,7 @@ export default function SignUp() {
         setFormMessage(data.message || 'Unable to register account.');
       }
     } catch (error) {
-      console.error('Registration API Error:', error);
-      setFormMessage('Unable to communicate with the server. Please try again.');
+      setFormMessage('Unable to communicate with the server. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }

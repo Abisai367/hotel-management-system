@@ -54,8 +54,7 @@ export default function Login() {
         setFormMessage(data.message || 'Invalid phone number or password configuration.');
       }
     } catch (error) {
-      console.error('Authentication Error:', error);
-      setFormMessage('Unable to authenticate with the server. Please try again.');
+      setFormMessage('Unable to authenticate with the server. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
