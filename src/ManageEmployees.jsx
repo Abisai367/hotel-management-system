@@ -6,9 +6,8 @@ export default function ManageEmployees(){
   const [mode, setMode] = useState('list');
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({full_name:'', phone:'', role:'Employee', shift_schedule:'', salary:''});
-  const [addForm, setAddForm] = useState({full_name:'', phone:'', role:'Employee'});
   const [message, setMessage] = useState('');
 
   useEffect(()=>{
@@ -30,8 +29,8 @@ export default function ManageEmployees(){
       .finally(()=>setLoading(false));
   }
 
-  function handleSelectForEdit(emp){
-    setEditingEmployee(emp);
+  function handleSelect(emp){
+    setSelected(emp);
     setForm({
       full_name: emp.full_name || '',
       phone: emp.phone || '',
@@ -39,11 +38,7 @@ export default function ManageEmployees(){
       shift_schedule: emp.shift_schedule || '',
       salary: emp.salary || ''
     });
-  }
-
-  function handleAddField(e){
-    const {name,value} = e.target;
-    setAddForm(f=>({...f,[name]:value}));
+    setMode('customize');
   }
 
   function handleField(e){
@@ -52,51 +47,53 @@ export default function ManageEmployees(){
   }
 
   function saveEmployee(){
-    if (!editingEmployee || !editingEmployee.id) { setMessage('No employee selected'); return; }
-    if (!form.full_name.trim()) { setMessage('Name is required'); return; }
-    if (!form.phone.trim()) { setMessage('Phone is required'); return; }
+    if (!selected || !selected.id) { setMessage('Select an employee first'); return; }
     setMessage('Saving...');
     fetch('/api/update_employee.php', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ id: editingEmployee.id, ...form })
+      body: JSON.stringify({ id: selected.id, ...form })
     }).then(r=>r.json()).then(j=>{
-      if (j.status==='success'){ setMessage('✓ Employee updated successfully'); setTimeout(()=>{ fetchEmployees(); setEditingEmployee(null); }, 500); }
-      else setMessage('Error: ' + (j.message || 'Save failed'));
+      if (j.status==='success'){ setMessage('Saved'); fetchEmployees(); setMode('list'); }
+      else setMessage(j.message || 'Save failed');
     }).catch(e=>{ console.error(e); setMessage('Network error'); });
   }
 
   function unemploy(id){
-    if (!confirm('Convert this employee to a customer? This action cannot be undone.')) return;
+    if (!confirm('Unemploy this user? This converts them to a customer.')) return;
     setMessage('Processing...');
     fetch('/api/unemploy_employee.php', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ id })
     }).then(r=>r.json()).then(j=>{
-      if (j.status==='success'){ setMessage('✓ Employee converted to customer'); fetchEmployees(); setMode('list'); }
-      else setMessage('Error: ' + (j.message || 'Operation failed'));
+      if (j.status==='success'){ setMessage('Employee converted'); fetchEmployees(); setMode('list'); }
+      else setMessage(j.message || 'Operation failed');
     }).catch(e=>{ console.error(e); setMessage('Network error'); });
   }
 
   function addEmployee(){
-    if (!addForm.full_name.trim()) { setMessage('Name is required'); return; }
-    if (!addForm.phone.trim()) { setMessage('Phone is required'); return; }
     setMessage('Creating...');
-    fetch('/api/add_employee.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(addForm) })
-      .then(r=>r.json())
-      .then(j=>{
-        if (j.status==='success'){ setMessage('✓ Employee added successfully'); setTimeout(()=>{ fetchEmployees(); setAddForm({full_name:'',phone:'',role:'Employee'}); setMode('list'); }, 500); }
-        else setMessage('Error: ' + (j.message || 'Add failed'));
-      })
-      .catch(e=>{ console.error(e); setMessage('Network error'); });
+    const payload = {
+      full_name: form.full_name,
+      phone: form.phone,
+      role: form.role,
+      shift_schedule: form.shift_schedule,
+      salary: form.salary
+    };
+    fetch('/api/add_employee.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(r=>r.json()).then(j=>{
+        if (j.status==='success'){ setMessage('Employee added'); fetchEmployees(); setForm({full_name:'',phone:'',role:'Employee',shift_schedule:'',salary:''}); setMode('list'); }
+        else setMessage(j.message || 'Add failed');
+      }).catch(e=>{ console.error(e); setMessage('Network error'); });
   }
 
   return (
     <div className="upload-container">
       <div className="upload-content">
         <h1 className="manage-title">Manage Employees</h1>
-        <div className="manage-actions" style={{display:'flex',gap:10,marginBottom:12,flexWrap:'wrap'}}>
-          <button className={`btn btn-primary ${mode==='list'?'active':''}`} onClick={() => { setMode('list'); setEditingEmployee(null); }}>LIST EMPLOYEES</button>
-          <button className={`btn btn-secondary ${mode==='add'?'active':''}`} onClick={() => { setMode('add'); setEditingEmployee(null); }}>ADD NEW EMPLOYEE</button>
+        <div className="manage-actions" style={{display:'flex',gap:10,marginBottom:12}}>
+          <button className={`btn btn-primary ${mode==='list'?'active':''}`} onClick={() => { setMode('list'); setSelected(null); }}>LIST</button>
+          <button className={`btn btn-secondary ${mode==='add'?'active':''}`} onClick={() => { setMode('add'); setSelected(null); }}>ADD EMPLOYEE</button>
+          <button className={`btn btn-secondary ${mode==='customize'?'active':''}`} onClick={() => { if (!selected) { setMessage('Select an employee from the list'); } else setMode('customize'); }}>CUSTOMIZE EMPLOYEE</button>
         </div>
 
         {message && <div className="form-message">{message}</div>}
@@ -106,11 +103,11 @@ export default function ManageEmployees(){
         {mode === 'list' && (
           <div className="product-management">
             <div className="product-management-header">
-              <h2>Employee Directory</h2>
-              <p className="admin-help-text">Click <strong>Edit Details</strong> to modify employee information or <strong>Convert to Customer</strong> to remove from staff.</p>
+              <h2>Employees</h2>
+              <p className="admin-help-text">Tap an employee to customize or convert them to a customer.</p>
             </div>
             <div className="product-grid-admin" style={{display:'grid',gridTemplateColumns:'1fr',gap:12}}>
-              {employees.length === 0 && <div className="empty-text">No employees found. Add your first employee using the "ADD NEW EMPLOYEE" button.</div>}
+              {employees.length === 0 && <div className="empty-text">No employees found.</div>}
               {employees.map(emp=> (
                 <div key={emp.id} className="product-card" style={{alignItems:'center'}}>
                   <div className="product-card-image">
@@ -119,87 +116,77 @@ export default function ManageEmployees(){
                   <div className="product-card-body">
                     <div>
                       <h3>{emp.full_name}</h3>
-                      <p><strong>{emp.role}</strong> • {emp.phone}</p>
-                      {emp.salary && <p>Salary: Kshs. {emp.salary}</p>}
+                      <p>{emp.role} • {emp.phone}</p>
                     </div>
-                    <div className="product-card-meta" style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                      <button className="btn btn-primary" onClick={()=>handleSelectForEdit(emp)}>Edit Details</button>
-                      <button className="btn btn-delete" onClick={()=>unemploy(emp.id)}>Convert to Customer</button>
+                    <div className="product-card-meta">
+                      <div style={{display:'flex',gap:8}}>
+                        <button className="btn btn-secondary" onClick={()=>handleSelect(emp)}>Customize</button>
+                        <button className="btn btn-delete" onClick={()=>unemploy(emp.id)}>Unemploy</button>
+                      </div>
+                      <div className="card-price">Joined: {emp.created_at || '—'}</div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {editingEmployee && (
-              <div className="edit-product-panel">
-                <div className="edit-product-header">
-                  <h2>Editing: {editingEmployee.full_name}</h2>
-                  <button className="close-edit-btn" onClick={() => setEditingEmployee(null)}>✕</button>
-                </div>
-                
-                <div className="edit-form-container">
-                  <div className="edit-form-section">
-                    <label htmlFor="emp-name">Full Name</label>
-                    <input id="emp-name" type="text" name="full_name" value={form.full_name} onChange={handleField} placeholder="Employee full name" />
-                  </div>
-
-                  <div className="edit-form-section">
-                    <label htmlFor="emp-phone">Phone Number</label>
-                    <input id="emp-phone" type="text" name="phone" value={form.phone} onChange={handleField} placeholder="Phone number" />
-                  </div>
-
-                  <div className="edit-form-section">
-                    <label htmlFor="emp-role">Role</label>
-                    <input id="emp-role" type="text" name="role" value={form.role} onChange={handleField} placeholder="e.g. Employee, Supervisor" />
-                  </div>
-
-                  <div className="edit-form-section">
-                    <label htmlFor="emp-shift">Shift Schedule</label>
-                    <input id="emp-shift" type="text" name="shift_schedule" value={form.shift_schedule} onChange={handleField} placeholder="e.g. 8AM-4PM, 4PM-12AM" />
-                  </div>
-
-                  <div className="edit-form-section">
-                    <label htmlFor="emp-salary">Monthly Salary (Kshs.)</label>
-                    <input id="emp-salary" type="number" name="salary" value={form.salary} onChange={handleField} placeholder="0.00" min="0" step="0.01" />
-                  </div>
-
-                  <div className="edit-form-actions">
-                    <button className="btn btn-primary" onClick={saveEmployee}>Save Changes</button>
-                    <button className="btn btn-secondary" onClick={()=>setEditingEmployee(null)}>Cancel</button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {mode === 'add' && (
           <div className="upload-form">
-            <h2 style={{fontSize:'18pt', marginBottom:'20px', color:'var(--text-dark)'}}>Add New Employee</h2>
-            
             <div className="form-group">
-              <label>Full Name <span className="required">*</span></label>
-              <input type="text" name="full_name" value={addForm.full_name} onChange={handleAddField} placeholder="Employee full name" />
+              <label>Full name</label>
+              <input name="full_name" value={form.full_name} onChange={handleField} placeholder="Employee full name" />
             </div>
-            
             <div className="form-group">
-              <label>Phone Number <span className="required">*</span></label>
-              <input type="text" name="phone" value={addForm.phone} onChange={handleAddField} placeholder="Phone number" />
+              <label>Phone</label>
+              <input name="phone" value={form.phone} onChange={handleField} placeholder="Phone number" />
             </div>
-            
             <div className="form-group">
-              <label>Role <span className="required">*</span></label>
-              <select name="role" value={addForm.role} onChange={handleAddField} style={{padding:'12px 14px', borderRadius:'10px', border:'1px solid var(--border-color)', background:'var(--light-bg)', fontFamily:"'Poppins',sans-serif", fontSize:'15pt'}}>
-                <option value="Employee">Employee</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Manager">Manager</option>
-              </select>
+              <label>Role</label>
+              <input name="role" value={form.role} onChange={handleField} placeholder="Role (Employee/Supervisor)" />
             </div>
-
+            <div className="form-group">
+              <label>Shift schedule</label>
+              <input name="shift_schedule" value={form.shift_schedule} onChange={handleField} placeholder="e.g. Morning / Afternoon" />
+            </div>
+            <div className="form-group">
+              <label>Salary</label>
+              <input name="salary" value={form.salary} onChange={handleField} placeholder="0.00" />
+            </div>
             <div className="form-actions">
-              <button className="btn btn-primary" onClick={addEmployee}>Create Employee</button>
-              <button className="btn btn-secondary" onClick={()=>{ setMode('list'); setAddForm({full_name:'',phone:'',role:'Employee'}); }}>Cancel</button>
+              <button className="btn btn-primary" onClick={addEmployee}>Add Employee</button>
+              <button className="btn btn-secondary" onClick={()=>{ setMode('list'); setForm({full_name:'',phone:'',role:'Employee',shift_schedule:'',salary:''}); }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {mode === 'customize' && selected && (
+          <div className="upload-form">
+            <h3>Editing: {selected.full_name}</h3>
+            <div className="form-group">
+              <label>Full name</label>
+              <input name="full_name" value={form.full_name} onChange={handleField} />
+            </div>
+            <div className="form-group">
+              <label>Phone</label>
+              <input name="phone" value={form.phone} onChange={handleField} />
+            </div>
+            <div className="form-group">
+              <label>Role</label>
+              <input name="role" value={form.role} onChange={handleField} />
+            </div>
+            <div className="form-group">
+              <label>Shift schedule</label>
+              <input name="shift_schedule" value={form.shift_schedule} onChange={handleField} />
+            </div>
+            <div className="form-group">
+              <label>Salary</label>
+              <input name="salary" value={form.salary} onChange={handleField} placeholder="0.00" />
+            </div>
+            <div className="form-actions">
+              <button className="btn btn-primary" onClick={saveEmployee}>Save Changes</button>
+              <button className="btn btn-secondary" onClick={()=>{ setMode('list'); setSelected(null); }}>Back</button>
             </div>
           </div>
         )}

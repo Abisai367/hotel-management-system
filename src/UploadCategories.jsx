@@ -141,14 +141,14 @@ export default function UploadCategories(){
         const confirmed = window.confirm(`Delete ${product.product_name}? This action cannot be undone.`);
         if (!confirmed) return;
 
-        setDeleteLoading(product.id);
+        setDeleteLoading(product.product_id);
         try {
             const response = await fetch(`${apiUrl}/delete.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id: product.id, product_path: product.product_path })
+                body: JSON.stringify({ id: product.product_id, product_path: product.product_path })
             });
             if (!response.ok) {
                 const text = await response.text();
@@ -203,6 +203,39 @@ export default function UploadCategories(){
             setDeleteLoading(null);
         }
     }
+
+    const saveProductEdit = async () => {
+        if (!editingProduct?.product_id) {
+            setFormMessage('Select a product to edit.');
+            return;
+        }
+        setFormMessage('Saving product updates...');
+        try {
+            const body = {
+                id: editingProduct.product_id,
+                product_name: editName,
+                description: editDesc,
+                price: editPrice,
+                product_path: editPath
+            };
+            const res = await fetch(`${apiUrl}/update_product.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const j = await res.json();
+            if (j.status === 'success') {
+                setFormMessage('Product updated successfully');
+                setEditingProduct(null);
+                await fetchProducts();
+            } else {
+                setFormMessage(j.message || 'Update failed');
+            }
+        } catch (err) {
+            console.error(err);
+            setFormMessage('Network error while updating product');
+        }
+    };
 
     useEffect(() => {
       fetchProducts();
@@ -278,155 +311,64 @@ export default function UploadCategories(){
                 )}
                 {showCustomizePane && (
                     <div className="customize-pane">
-                        <div className="product-management">
-                            <div className="product-management-header">
-                                <h2>Edit Products</h2>
-                                <p>Click <strong>Edit</strong> on any product to modify its details.</p>
-                            </div>
-
-                            {isLoadingProducts ? (
-                                <p className="loading-text">Loading products...</p>
-                            ) : productList.length === 0 ? (
-                                <p className="empty-text">No products available. Add products using the "ADD PRODUCTS" tab.</p>
-                            ) : (
-                                <div className="product-grid-admin">
-                                    {productList.map((p) => (
-                                        <div className="product-card" key={p.product_id}>
-                                            <div className="product-card-image">
-                                                {p.product_path ? <img src={p.product_path} alt={p.product_name} /> : <div className="product-image-placeholder" />}
-                                            </div>
-                                            <div className="product-card-body">
-                                                <div>
-                                                    <h3>{p.product_name}</h3>
-                                                    <p>{p.description}</p>
-                                                    <p className="card-price">Kshs. {p.price}</p>
-                                                </div>
-                                                <div className="product-card-meta">
-                                                    <button className="btn btn-primary" onClick={() => {
-                                                        setEditingProduct(p);
-                                                        setEditName(p.product_name || '');
-                                                        setEditDesc(p.description || '');
-                                                        setEditPrice(p.price || '');
-                                                        setEditPath(p.product_path || '');
-                                                    }}>Edit This Product</button>
-                                                </div>
-                                            </div>
+                        <p>Choose a product below and click <strong>Edit</strong> to open the inline edit panel.</p>
+                        {isLoadingProducts ? (
+                            <p className="loading-text">Loading products...</p>
+                        ) : (
+                            <div className="product-grid-admin">
+                                {productList.map((p) => (
+                                    <div className={`product-card ${editingProduct?.product_id === p.product_id ? 'expanded' : ''}`} key={p.product_id}>
+                                        <div className="product-card-image">
+                                            {p.product_path ? <img src={p.product_path} alt={p.product_name} /> : <div className="product-image-placeholder" />}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {editingProduct && (
-                            <div className="edit-product-panel">
-                                <div className="edit-product-header">
-                                    <h2>Editing: {editingProduct.product_name}</h2>
-                                    <button className="close-edit-btn" onClick={() => setEditingProduct(null)}>✕</button>
-                                </div>
-                                
-                                <div className="edit-form-container">
-                                    <div className="edit-form-section">
-                                        <label htmlFor="edit-name">Product Name</label>
-                                        <input 
-                                            id="edit-name"
-                                            type="text" 
-                                            value={editName} 
-                                            onChange={(e) => setEditName(e.target.value)}
-                                            placeholder="Enter product name"
-                                        />
-                                    </div>
-
-                                    <div className="edit-form-section">
-                                        <label htmlFor="edit-desc">Description</label>
-                                        <textarea 
-                                            id="edit-desc"
-                                            value={editDesc} 
-                                            onChange={(e) => setEditDesc(e.target.value)}
-                                            placeholder="Enter product description"
-                                            rows="4"
-                                        />
-                                    </div>
-
-                                    <div className="edit-form-section">
-                                        <label htmlFor="edit-price">Price (Kshs.)</label>
-                                        <input 
-                                            id="edit-price"
-                                            type="number" 
-                                            min="0"
-                                            step="0.01"
-                                            value={editPrice} 
-                                            onChange={(e) => setEditPrice(e.target.value)}
-                                            placeholder="Enter product price"
-                                        />
-                                    </div>
-
-                                    <div className="edit-form-section">
-                                        <label htmlFor="edit-image">Image URL</label>
-                                        <input 
-                                            id="edit-image"
-                                            type="text"
-                                            value={editPath} 
-                                            onChange={(e) => setEditPath(e.target.value)}
-                                            placeholder="Enter image URL from Cloudinary"
-                                        />
-                                        {editPath && (
-                                            <div className="image-preview-edit">
-                                                <img src={editPath} alt="Preview" />
+                                        <div className="product-card-body">
+                                            <div>
+                                                <h3>{p.product_name}</h3>
+                                                <p>{p.description}</p>
                                             </div>
-                                        )}
-                                    </div>
-
-                                    <div className="edit-form-actions">
-                                        <button 
-                                            className="btn btn-primary" 
-                                            onClick={async () => {
-                                                if (!editName.trim()) {
-                                                    setFormMessage('Product name is required');
-                                                    return;
-                                                }
-                                                if (!editPrice || parseFloat(editPrice) < 0) {
-                                                    setFormMessage('Price must be a valid positive number');
-                                                    return;
-                                                }
-                                                try {
-                                                    const body = { 
-                                                        id: editingProduct.product_id, 
-                                                        product_name: editName, 
-                                                        description: editDesc, 
-                                                        price: parseFloat(editPrice), 
-                                                        product_path: editPath 
-                                                    };
-                                                    const res = await fetch(`${apiUrl}/update_product.php`, { 
-                                                        method: 'POST', 
-                                                        headers: { 'Content-Type': 'application/json' }, 
-                                                        body: JSON.stringify(body) 
-                                                    });
-                                                    const j = await res.json();
-                                                    if (j.status === 'success') {
-                                                        setFormMessage('✓ Product updated successfully');
-                                                        setTimeout(() => {
-                                                            setEditingProduct(null);
-                                                            fetchProducts();
-                                                        }, 500);
-                                                    } else {
-                                                        setFormMessage('Error: ' + (j.message || 'Update failed'));
+                                            <div className="product-card-meta">
+                                                <span className="card-price">Kshs. {p.price}</span>
+                                                <button className="btn btn-primary" onClick={() => {
+                                                    if (editingProduct?.product_id === p.product_id) {
+                                                        setEditingProduct(null);
+                                                        return;
                                                     }
-                                                } catch (err) {
-                                                    console.error(err);
-                                                    setFormMessage('Network error: ' + err.message);
-                                                }
-                                            }}
-                                        >
-                                            Save Changes
-                                        </button>
-                                        <button 
-                                            className="btn btn-secondary" 
-                                            onClick={() => setEditingProduct(null)}
-                                        >
-                                            Cancel
-                                        </button>
+                                                    setEditingProduct(p);
+                                                    setEditName(p.product_name || '');
+                                                    setEditDesc(p.description || '');
+                                                    setEditPrice(p.price || '');
+                                                    setEditPath(p.product_path || '');
+                                                }}>
+                                                    {editingProduct?.product_id === p.product_id ? 'Close' : 'Edit'}
+                                                </button>
+                                            </div>
+                                            {editingProduct?.product_id === p.product_id && (
+                                                <div className="product-edit-panel">
+                                                    <div className="form-group">
+                                                        <label>Name</label>
+                                                        <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Description</label>
+                                                        <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Price</label>
+                                                        <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Image URL</label>
+                                                        <input value={editPath} onChange={(e) => setEditPath(e.target.value)} />
+                                                    </div>
+                                                    <div className="form-actions">
+                                                        <button className="btn btn-primary" onClick={saveProductEdit}>Save</button>
+                                                        <button className="btn btn-secondary" onClick={() => setEditingProduct(null)}>Cancel</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -476,7 +418,7 @@ export default function UploadCategories(){
                                     <p className="empty-text">No products available yet.</p>
                                 ) : (
                                     productList.map((product) => (
-                                        <div className="product-card" key={product.id || product.product_name}>
+                                        <div className="product-card" key={product.product_id || product.product_name}>
                                             <div className="product-card-image">
                                                 {product.product_path ? (
                                                     <img src={product.product_path} alt={product.product_name} />
@@ -494,9 +436,9 @@ export default function UploadCategories(){
                                                     <button
                                                         className="btn btn-delete"
                                                         onClick={() => handleDelete(product)}
-                                                        disabled={deleteLoading === product.id}
+                                                        disabled={deleteLoading === product.product_id}
                                                     >
-                                                        {deleteLoading === product.id ? 'Deleting...' : 'Delete'}
+                                                        {deleteLoading === product.product_id ? 'Deleting...' : 'Delete'}
                                                     </button>
                                                 </div>
                                             </div>
