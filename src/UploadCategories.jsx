@@ -24,6 +24,10 @@ export default function UploadCategories(){
     const [editDesc, setEditDesc] = useState('');
     const [editPrice, setEditPrice] = useState('');
     const [editPath, setEditPath] = useState('');
+    const [editFile, setEditFile] = useState(null);
+    const [editPreview, setEditPreview] = useState(null);
+    const [imageDeleted, setImageDeleted] = useState(false);
+    const [originalEditPath, setOriginalEditPath] = useState('');
 
     const fetchProducts = async () => {
         try {
@@ -50,6 +54,31 @@ export default function UploadCategories(){
             setPreview(imageUrl);
         }
     };
+
+    const handleEditImageChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setEditFile(selectedFile);
+            setImageDeleted(false);
+            const imageUrl = URL.createObjectURL(selectedFile);
+            setEditPreview(imageUrl);
+        }
+    };
+
+    const deleteCurrentEditImage = () => {
+        setImageDeleted(true);
+        setEditFile(null);
+        setEditPreview(null);
+        setEditPath('');
+    };
+
+    const restoreCurrentImage = () => {
+        setImageDeleted(false);
+        setEditFile(null);
+        setEditPath(originalEditPath);
+        setEditPreview(originalEditPath);
+    };
+
     const productName = (e) =>{
         setProductName(e.target.value.toLowerCase());
     }
@@ -203,14 +232,50 @@ export default function UploadCategories(){
             setFormMessage('Select a product to edit.');
             return;
         }
+
         setFormMessage('Saving product updates...');
+
+        let updatedImagePath = editPath;
+
+        if (editFile) {
+            setFormMessage('Uploading updated image...');
+            try {
+                const cloudinaryData = new FormData();
+                cloudinaryData.append('file', editFile);
+                cloudinaryData.append('upload_preset', 'hotel_preset');
+
+                const cloudinaryEndpoint = `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`;
+                const cloudinaryResponse = await fetch(cloudinaryEndpoint, {
+                    method: 'POST',
+                    body: cloudinaryData,
+                });
+                if (!cloudinaryResponse.ok) {
+                    const errorText = await cloudinaryResponse.text();
+                    throw new Error(errorText || 'Cloudinary upload rejected.');
+                }
+                const cloudJson = await cloudinaryResponse.json();
+                updatedImagePath = cloudJson.secure_url;
+            } catch (uploadError) {
+                setFormMessage('Unable to upload the replacement image. Please try again.');
+                return;
+            }
+        } else if (imageDeleted) {
+            const keepOriginal = window.confirm('You deleted the current product image. Do you want to continue using the original image? Click OK to keep it, or Cancel to upload a replacement.');
+            if (keepOriginal) {
+                updatedImagePath = originalEditPath;
+            } else {
+                setFormMessage('Please upload an image to proceed.');
+                return;
+            }
+        }
+
         try {
             const body = {
                 id: editingProduct.product_id,
                 product_name: editName,
                 description: editDesc,
                 price: editPrice,
-                product_path: editPath
+                product_path: updatedImagePath,
             };
             const res = await fetch(`${apiUrl}/update_product.php`, {
                 method: 'POST',
@@ -221,6 +286,8 @@ export default function UploadCategories(){
             if (j.status === 'success') {
                 setFormMessage('Product updated successfully');
                 setEditingProduct(null);
+                setEditFile(null);
+                setEditPreview(null);
                 await fetchProducts();
             } else {
                 setFormMessage(j.message || 'Update failed');
@@ -253,10 +320,11 @@ export default function UploadCategories(){
         <div className="upload-container">
             <div className="upload-content">
                 <h1 className="upload-title">MANAGE PRODUCTS</h1>
+                <p className="upload-subtitle">Add, edit, or remove product items cleanly from one place.</p>
                 <div className="manage-actions">
-                    <button className={`btn btn-primary ${showAddPane? 'active' : ''}`} onClick={() => { setShowAddPane(true); setShowDeletePane(false); setShowCustomizePane(false); }}>ADD PRODUCTS</button>
-                    <button className={`btn btn-secondary ${showDeletePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(true); setShowCustomizePane(false); }}>DELETE PRODUCT</button>
-                    <button className={`btn btn-secondary ${showCustomizePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(false); setShowCustomizePane(true); }}>CUSTOMIZE PRODUCTS</button>
+                    <button className={`btn btn-primary ${showAddPane? 'active' : ''}`} onClick={() => { setShowAddPane(true); setShowDeletePane(false); setShowCustomizePane(false); }}>Add Product</button>
+                    <button className={`btn btn-secondary ${showDeletePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(true); setShowCustomizePane(false); }}>Remove Product</button>
+                    <button className={`btn btn-secondary ${showCustomizePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(false); setShowCustomizePane(true); }}>Edit Products</button>
                 </div>
                 {showAddPane && (
                     <form className="upload-form" onSubmit={handleSubmit}>
@@ -286,7 +354,7 @@ export default function UploadCategories(){
                     </div>
 
                     <div className="form-actions">
-                        <button type="submit" className="btn btn-primary">{product_name ? 'Save Product' : 'ADD PRODUCT'}</button>
+                        <button type="submit" className="btn btn-primary">{product_name ? 'Save Product' : 'Add Product'}</button>
                         <Link to="/categories" className="btn btn-secondary">View Categories</Link>
                     </div>
                     </form>
@@ -324,6 +392,8 @@ export default function UploadCategories(){
                                                 <button className="btn btn-primary" onClick={() => {
                                                     if (editingProduct?.product_id === p.product_id) {
                                                         setEditingProduct(null);
+                                                        setEditFile(null);
+                                                        setEditPreview(null);
                                                         return;
                                                     }
                                                     setEditingProduct(p);
@@ -331,6 +401,8 @@ export default function UploadCategories(){
                                                     setEditDesc(p.description || '');
                                                     setEditPrice(p.price || '');
                                                     setEditPath(p.product_path || '');
+                                                    setEditFile(null);
+                                                    setEditPreview(p.product_path || null);
                                                 }}>
                                                     {editingProduct?.product_id === p.product_id ? 'Close' : 'Edit'}
                                                 </button>
@@ -350,12 +422,39 @@ export default function UploadCategories(){
                                                         <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                                                     </div>
                                                     <div className="form-group">
-                                                        <label>Image URL</label>
-                                                        <input value={editPath} onChange={(e) => setEditPath(e.target.value)} />
+                                                        <label>Replace product image</label>
+                                                        <input type="file" accept="image/*" onChange={handleEditImageChange} />
+                                                        {editPreview && (
+                                                            <div className="image-display">
+                                                                <img src={editPreview} alt="Product preview" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="current-image-section">
+                                                        <h4>Current image</h4>
+                                                        {imageDeleted ? (
+                                                            <div className="deleted-image-notice">
+                                                                <p>Current image removed. Upload a replacement image or restore the existing one.</p>
+                                                                <button type="button" className="btn btn-secondary btn-small" onClick={restoreCurrentImage}>Restore image</button>
+                                                            </div>
+                                                        ) : originalEditPath ? (
+                                                            <div className="current-image-preview">
+                                                                <img src={originalEditPath} alt="Current product" />
+                                                                <button type="button" className="btn btn-danger btn-small" onClick={deleteCurrentEditImage}>Delete image</button>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="empty-text">No current image available.</p>
+                                                        )}
                                                     </div>
                                                     <div className="form-actions">
                                                         <button className="btn btn-primary" onClick={saveProductEdit}>Save</button>
-                                                        <button className="btn btn-secondary" onClick={() => setEditingProduct(null)}>Cancel</button>
+                                                        <button className="btn btn-secondary" onClick={() => {
+                                                            setEditingProduct(null);
+                                                            setEditFile(null);
+                                                            setEditPreview(null);
+                                                            setImageDeleted(false);
+                                                            setOriginalEditPath('');
+                                                        }}>Cancel</button>
                                                     </div>
                                                 </div>
                                             )}
@@ -369,8 +468,8 @@ export default function UploadCategories(){
                     {formMessage && <p className="form-message">{formMessage}</p>}
                 <div className="product-management">
                     <div className="product-management-header">
-                        <h2>Admin Product Management</h2>
-                        <p>Delete products directly from the add product page.</p>
+                        <h2>Manage existing products</h2>
+                        <p>Use this section to remove product listings or edit details after they are created.</p>
                         <div className="delete-by-name">
                             <label htmlFor="delete-by-name-input">Delete by product name</label>
                             <input

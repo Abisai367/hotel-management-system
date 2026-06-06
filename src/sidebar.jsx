@@ -113,7 +113,7 @@ export default function Sidebar() {
               <Link to="/admin"><li className="nav-item"><FaThLarge className="nav-icon"/> Dashboard</li></Link>
             )}
             {isAdmin && (
-              <Link to="/upload"><li className="nav-item"><FaPlus className="nav-icon"/> Add Product</li></Link>
+              <Link to="/upload"><li className="nav-item"><FaPlus className="nav-icon"/> Manage Products</li></Link>
             )}
             {isAdmin && (
               <Link to="/add-employee"><li className="nav-item"><FaThLarge className="nav-icon"/> Add Employee</li></Link>

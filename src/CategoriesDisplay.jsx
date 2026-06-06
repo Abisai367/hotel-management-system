@@ -126,7 +126,7 @@ const CategoryDisplay = () => {
         <div className="category-actions">
           <Link to="/MyCart"><button className="btn btn-primary">My Cart</button></Link>
           {isAdmin() && (
-            <Link to="/upload"><button className="btn btn-secondary">Add Product</button></Link>
+            <Link to="/upload"><button className="btn btn-secondary">Manage Products</button></Link>
           )}
         </div>
       </div>
