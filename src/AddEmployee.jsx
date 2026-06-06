@@ -49,17 +49,22 @@ export default function AddEmployee() {
 
     if (file) {
       try {
+        const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
+        const cloudinaryPreset = import.meta.env.VITE_CLOUDINARY_PRESET || 'hotel_preset';
+        const cloudinaryEndpoint = `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`;
+
         const cloudinaryData = new FormData();
         cloudinaryData.append('file', file);
-        cloudinaryData.append('upload_preset', 'hotel_preset');
+        cloudinaryData.append('upload_preset', cloudinaryPreset);
 
-        const cloudinaryResponse = await fetch(
-          'https://cloudinary.com',
-          { method: 'POST', body: cloudinaryData }
-        );
+        const cloudinaryResponse = await fetch(cloudinaryEndpoint, {
+          method: 'POST',
+          body: cloudinaryData,
+        });
 
         if (!cloudinaryResponse.ok) {
-          throw new Error('Cloudinary asset upload rejected.');
+          const errorText = await cloudinaryResponse.text();
+          throw new Error(errorText || 'Cloudinary asset upload rejected.');
         }
 
         const cloudJson = await cloudinaryResponse.json();
