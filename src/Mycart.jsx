@@ -1,9 +1,53 @@
-﻿import React, { useContext, useEffect, useState } from "react";
+﻿import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MyCart } from "./CartContext";
 import { Link } from "react-router-dom";
 import ScrollReveal from "scrollreveal";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import { getApiUrl } from './apiUrl.js';
 import "./Mycart.css";
+import "leaflet/dist/leaflet.css";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+const MapClickComponent = ({ onMapClick }) => {
+  useMapEvents({
+    click: (e) => {
+      if (onMapClick) {
+        try {
+          onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+        } catch (err) {
+          console.error('Error handling map click:', err);
+        }
+      }
+    }
+  });
+  return null;
+};
+
+const MapWithClickHandler = ({ initialLocation, onLocationSelect }) => {
+  return (
+    <MapContainer 
+      center={[initialLocation.lat, initialLocation.lng]} 
+      zoom={15} 
+      style={{ height: '400px', width: '100%' }}
+    >
+      <TileLayer 
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+        attribution="&copy; OpenStreetMap contributors"
+      />
+      <Marker position={[initialLocation.lat, initialLocation.lng]}>
+        <Popup>Selected location</Popup>
+      </Marker>
+      <MapClickComponent onMapClick={onLocationSelect} />
+    </MapContainer>
+  );
+};
 
 export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
@@ -17,6 +61,8 @@ export default function Mycart() {
   const [pickupTime, setPickupTime] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryLatitude, setDeliveryLatitude] = useState(null);
+  const [deliveryLongitude, setDeliveryLongitude] = useState(null);
   const [paymentNumber, setPaymentNumber] = useState("");
   const [checkoutIndex, setCheckoutIndex] = useState(null);
   const [orderType, setOrderType] = useState('dineIn');
@@ -24,6 +70,14 @@ export default function Mycart() {
   const [payMessage, setPayMessage] = useState(null);
   const [paymentSession, setPaymentSession] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [mapSelectionLoading, setMapSelectionLoading] = useState(false);
+  const [mapSelectionError, setMapSelectionError] = useState(null);
+  const mapRef = useRef(null);
+  const tempLocationRef = useRef({ address: null, lat: null, lng: null });
 
   const [pickupDay, setPickupDay] = useState("");
   const [pickupHour, setPickupHour] = useState("12");
@@ -52,6 +106,50 @@ export default function Mycart() {
     const dateTime = new Date(`${day}T${hour24.toString().padStart(2, '0')}:00:00`);
     if (Number.isNaN(dateTime.getTime())) return null;
     return `${dateTime.getFullYear()}-${String(dateTime.getMonth() + 1).padStart(2, '0')}-${String(dateTime.getDate()).padStart(2, '0')} ${String(dateTime.getHours()).padStart(2, '0')}:${String(dateTime.getMinutes()).padStart(2, '0')}:00`;
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
+        headers: { 'User-Agent': 'HotelManagementSystem/1.0' }
+      });
+      const data = await response.json();
+      return data.address?.road || data.address?.neighborhood || data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    } catch (err) {
+      console.error('Reverse geocoding failed:', err);
+      return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setLocationLoading(true);
+    setLocationError(null);
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported');
+      setLocationLoading(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const address = await reverseGeocode(latitude, longitude);
+        setDeliveryAddress(address);
+        setDeliveryLatitude(latitude);
+        setDeliveryLongitude(longitude);
+        setShowLocationModal(false);
+        setLocationLoading(false);
+      },
+      (error) => {
+        setLocationError('Unable to get location: ' + error.message);
+        setLocationLoading(false);
+      }
+    );
+  };
+
+  const closeLocationModal = () => {
+    setShowLocationModal(false);
+    setLocationError(null);
+    setMapSelectionError(null);
   };
 
   useEffect(() => {
@@ -207,6 +305,10 @@ export default function Mycart() {
         setPayMessage({ type: 'error', text: 'Enter delivery address for delivery orders' });
         return;
       }
+      if (deliveryLatitude === null || deliveryLongitude === null) {
+        setPayMessage({ type: 'error', text: 'Location coordinates are required. Please select a delivery location.' });
+        return;
+      }
       if (!contactNumber.trim()) {
         setPayMessage({ type: 'error', text: 'Enter contact number for delivery orders' });
         return;
@@ -250,6 +352,8 @@ export default function Mycart() {
       tableNumber,
       pickupTime: orderType === 'takeAway' ? buildPickupDateTime(pickupDay, pickupHour, pickupPeriod) : null,
       deliveryAddress: orderType === 'delivery' ? deliveryAddress : null,
+      deliveryLatitude: orderType === 'delivery' ? deliveryLatitude : null,
+      deliveryLongitude: orderType === 'delivery' ? deliveryLongitude : null,
       contactNumber: orderType === 'takeAway' || orderType === 'delivery' ? contactNumber : null
     };
 
@@ -444,7 +548,12 @@ export default function Mycart() {
               )}
               {orderType === 'delivery' && (
                 <div>
-                  <input type="text" placeholder="Enter delivery address" value={deliveryAddress} onChange={handleDeliveryAddressChange} />
+                  <div className="location-selector-wrapper">
+                    <label>Delivery Location</label>
+                    <button type="button" className="location-selector-button" onClick={() => setShowLocationModal(true)}>
+                      {deliveryAddress ? '[LOCATION] ' + deliveryAddress : 'Select Delivery Location'}
+                    </button>
+                  </div>
                   <label>Contact Of the Receiver</label>
                   <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
                 </div>
@@ -581,7 +690,12 @@ export default function Mycart() {
                         )}
                         {orderType === 'delivery' && (
                           <div>
-                            <input type="text" placeholder="Enter delivery address" value={deliveryAddress} onChange={handleDeliveryAddressChange} />
+                            <div className="location-selector-wrapper">
+                              <label>Delivery Location</label>
+                              <button type="button" className="location-selector-button" onClick={() => setShowLocationModal(true)}>
+                                {deliveryAddress ? '[LOCATION] ' + deliveryAddress : 'Select Delivery Location'}
+                              </button>
+                            </div>
                             <label>Contact Of the Receiver</label>
                             <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
                           </div>
@@ -610,6 +724,103 @@ export default function Mycart() {
             })}
           </ul>
         </section>
+      )}
+
+      {showLocationModal && (
+        <div className="modal-overlay" onClick={closeLocationModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Select Delivery Location</h2>
+              <button type="button" className="modal-close" onClick={closeLocationModal}>x</button>
+            </div>
+
+            {locationError && <p className="error-message">{locationError}</p>}
+
+            {!showMapPicker ? (
+              <>
+                <div className="location-options">
+                  <button 
+                    type="button" 
+                    className="location-option-button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={locationLoading}
+                  >
+                    {locationLoading ? 'Getting location...' : 'Use My Current Location'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="location-option-button"
+                    onClick={() => setShowMapPicker(true)}
+                  >
+                    Select Location On Map
+                  </button>
+                </div>
+
+                <div className="modal-actions">
+                  <button 
+                    type="button" 
+                    className="secondary-button"
+                    onClick={closeLocationModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="map-container">
+                  <MapWithClickHandler 
+                    initialLocation={{ lat: -1.2921, lng: 36.8219 }}
+                    onLocationSelect={async (coords) => {
+                      try {
+                        setMapSelectionLoading(true);
+                        setMapSelectionError(null);
+                        const address = await reverseGeocode(coords.lat, coords.lng);
+                        if (!address) {
+                          throw new Error('Failed to get address');
+                        }
+                        tempLocationRef.current = {
+                          address,
+                          lat: coords.lat,
+                          lng: coords.lng
+                        };
+                      } catch (err) {
+                        console.error('Map selection error:', err);
+                        setMapSelectionError('Failed to select location. Please try again.');
+                      } finally {
+                        setMapSelectionLoading(false);
+                      }
+                    }}
+                  />
+                </div>
+                <p className="map-hint">Click on the map to select a location</p>
+                <div className="modal-actions">
+                  <button 
+                    type="button" 
+                    className="secondary-button"
+                    onClick={() => setShowMapPicker(false)}
+                  >
+                    Back
+                  </button>
+                  <button 
+                    type="button" 
+                    className="primary-button"
+                    onClick={() => {
+                      if (tempLocationRef.current.address) {
+                        setDeliveryAddress(tempLocationRef.current.address);
+                        setDeliveryLatitude(tempLocationRef.current.lat);
+                        setDeliveryLongitude(tempLocationRef.current.lng);
+                        closeLocationModal();
+                      }
+                    }}
+                  >
+                    Confirm Location
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </main>
   );

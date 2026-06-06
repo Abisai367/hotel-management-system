@@ -94,9 +94,9 @@ export default function ManageEmployees(){
       <div className="upload-content">
         <h1 className="manage-title">Manage Employees</h1>
         <div className="manage-actions" style={{display:'flex',gap:10,marginBottom:12}}>
-          <button className={`btn btn-primary ${mode==='list'?'active':''}`} onClick={() => { setMode('list'); setSelected(null); }}>LIST</button>
-          <button className={`btn btn-secondary ${mode==='add'?'active':''}`} onClick={() => { setMode('add'); setSelected(null); }}>ADD EMPLOYEE</button>
-          <button className={`btn btn-secondary ${mode==='customize'?'active':''}`} onClick={() => { if (!selected) { setMessage('Select an employee from the list'); } else setMode('customize'); }}>CUSTOMIZE EMPLOYEE</button>
+          <button className={`btn btn-primary ${mode==='list'?'active':''}`} onClick={() => { setMode('list'); setSelected(null); }}>View Employees</button>
+          <button className={`btn btn-secondary ${mode==='add'?'active':''}`} onClick={() => { setMode('add'); setSelected(null); }}>Add Employee</button>
+          <button className={`btn btn-secondary ${mode==='customize'?'active':''}`} onClick={() => { if (!selected) { setMessage('Select an employee from the list'); } else setMode('customize'); }}>Edit Employee</button>
         </div>
 
         {message && <div className="form-message">{message}</div>}

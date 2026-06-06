@@ -324,7 +324,7 @@ export default function UploadCategories(){
                 <div className="manage-actions">
                     <button className={`btn btn-primary ${showAddPane? 'active' : ''}`} onClick={() => { setShowAddPane(true); setShowDeletePane(false); setShowCustomizePane(false); }}>Add Product</button>
                     <button className={`btn btn-secondary ${showDeletePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(true); setShowCustomizePane(false); }}>Remove Product</button>
-                    <button className={`btn btn-secondary ${showCustomizePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(false); setShowCustomizePane(true); }}>Edit Products</button>
+                    <button className={`btn btn-secondary ${showCustomizePane? 'active' : ''}`} onClick={() => { setShowAddPane(false); setShowDeletePane(false); setShowCustomizePane(true); }}>Edit Product</button>
                 </div>
                 {showAddPane && (
                     <form className="upload-form" onSubmit={handleSubmit}>
@@ -465,44 +465,35 @@ export default function UploadCategories(){
                         )}
                     </div>
                 )}
-                    {formMessage && <p className="form-message">{formMessage}</p>}
-                <div className="product-management">
-                    <div className="product-management-header">
-                        <h2>Manage existing products</h2>
-                        <p>Use this section to remove product listings or edit details after they are created.</p>
-                        <div className="delete-by-name">
-                            <label htmlFor="delete-by-name-input">Delete by product name</label>
-                            <input
-                                id="delete-by-name-input"
-                                type="text"
-                                placeholder="Type product name to delete"
-                                value={deleteByName}
-                                onChange={(e) => setDeleteByName(e.target.value.toLowerCase())}
-                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleDeleteByName(deleteByName); } }}
-                            />
-                            {deleteByName.trim().length > 0 && (
-                                <button
-                                    type="button"
-                                    className="btn btn-delete-name"
-                                    onClick={() => handleDeleteByName(deleteByName)}
-                                    disabled={deleteLoading === 'by-name'}
-                                >
-                                    {deleteLoading === 'by-name' ? 'Deleting...' : 'Delete product'}
-                                </button>
-                            )}
+                {formMessage && <p className="form-message">{formMessage}</p>}
+                {showDeletePane && (
+                    <div className="product-management">
+                        <div className="product-management-header">
+                            <h2>Manage existing products</h2>
+                            <p>Use this section to remove product listings or edit details after they are created.</p>
+                            <div className="delete-by-name">
+                                <label htmlFor="delete-by-name-input">Delete by product name</label>
+                                <input
+                                    id="delete-by-name-input"
+                                    type="text"
+                                    placeholder="Type product name to delete"
+                                    value={deleteByName}
+                                    onChange={(e) => setDeleteByName(e.target.value.toLowerCase())}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleDeleteByName(deleteByName); } }}
+                                />
+                                {deleteByName.trim().length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-delete-name"
+                                        onClick={() => handleDeleteByName(deleteByName)}
+                                        disabled={deleteLoading === 'by-name'}
+                                    >
+                                        {deleteLoading === 'by-name' ? 'Deleting...' : 'Delete product'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <div className="delete-admin-toolbar">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => setShowDeletePane((prev) => !prev)}
-                        >
-                            {showDeletePane ? 'Hide delete selection' : 'Select item to delete'}
-                        </button>
-                    </div>
-                    {showDeletePane ? (
-                        isLoadingProducts ? (
+                        {isLoadingProducts ? (
                             <p className="loading-text">Loading products...</p>
                         ) : (
                             <div className="product-grid-admin">
@@ -538,11 +529,9 @@ export default function UploadCategories(){
                                     ))
                                 )}
                             </div>
-                        )
-                    ) : (
-                        <p className="admin-help-text">Click the button above to select an item to delete from the list.</p>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )
