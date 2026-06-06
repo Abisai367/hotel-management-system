@@ -30,8 +30,5 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/hotel-management-system/, ''),
       },
     },
-  },
-  define: {
-    'process.env': process.env
   }
 })

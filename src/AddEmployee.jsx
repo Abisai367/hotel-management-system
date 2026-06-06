@@ -9,6 +9,7 @@ export default function AddEmployee() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Employee');
   const [shiftSchedule, setShiftSchedule] = useState('');
+  const [salary, setSalary] = useState('');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [formMessage, setFormMessage] = useState('');
@@ -35,8 +36,14 @@ export default function AddEmployee() {
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
 
-    if (!fullName || !phone || !password || !role || !shiftSchedule) {
+    if (!fullName || !phone || !password || !role || !shiftSchedule || salary === '') {
       setFormMessage('Please fill all required fields.');
+      return;
+    }
+
+    const parsedSalary = Number(salary);
+    if (Number.isNaN(parsedSalary) || parsedSalary < 0) {
+      setFormMessage('Enter a valid salary amount.');
       return;
     }
 
@@ -82,11 +89,13 @@ export default function AddEmployee() {
     const employeeData = new FormData();
     employeeData.append('full_name', fullName);
     employeeData.append('phone', phone);
+    employeeData.append('phone_number', phone);
     employeeData.append('password', password);
     employeeData.append('role', role);
     employeeData.append('shift_schedule', shiftSchedule);
+    employeeData.append('salary', parsedSalary);
     employeeData.append('profile_image_url', uploadedProfileUrl);
-    employeeData.append('admin_id', adminToken); 
+    employeeData.append('admin_id', adminToken);
 
     try {
       const response = await fetch(`${apiUrl}/add_employee.php`, {
@@ -107,6 +116,7 @@ export default function AddEmployee() {
         setPassword('');
         setRole('Employee');
         setShiftSchedule('');
+        setSalary('');
         setFile(null);
         setPreview(null);
         setFormMessage('');
@@ -176,6 +186,20 @@ export default function AddEmployee() {
               <option value="Supervisor">Supervisor</option>
               <option value="Admin">Co-Administrator</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="salary">Monthly Salary <span className="required">*</span></label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              id="salary"
+              placeholder="e.g. 25000"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
+              required
+            />
           </div>
 
           <div className="form-group">

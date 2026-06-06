@@ -61,13 +61,13 @@ export default function ManageEmployees(){
   }
 
   function unemploy(id){
-    if (!confirm('Unemploy this user? This converts them to a customer.')) return;
+    if (!confirm('Unemploy this user? This will remove their salary and change their role to customer.')) return;
     setMessage('Processing...');
     fetch(`${apiUrl}/unemploy_employee.php`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ id })
     }).then(r=>r.json()).then(j=>{
-      if (j.status==='success'){ setMessage('Employee converted'); fetchEmployees(); setMode('list'); }
+      if (j.status==='success'){ setMessage('Employee unemployed successfully'); fetchEmployees(); setMode('list'); }
       else setMessage(j.message || 'Operation failed');
     }).catch(e=>{ console.error(e); setMessage('Network error'); });
   }
@@ -77,6 +77,7 @@ export default function ManageEmployees(){
     const payload = {
       full_name: form.full_name,
       phone: form.phone,
+      phone_number: form.phone,
       role: form.role,
       shift_schedule: form.shift_schedule,
       salary: form.salary
@@ -106,7 +107,7 @@ export default function ManageEmployees(){
           <div className="product-management">
             <div className="product-management-header">
               <h2>Employees</h2>
-              <p className="admin-help-text">Tap an employee to customize or convert them to a customer.</p>
+              <p className="admin-help-text">Tap an employee to customize or unemploy them.</p>
             </div>
             <div className="product-grid-admin" style={{display:'grid',gridTemplateColumns:'1fr',gap:12}}>
               {employees.length === 0 && <div className="empty-text">No employees found.</div>}

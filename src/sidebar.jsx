@@ -61,7 +61,10 @@ export default function Sidebar() {
 
   const baseUrl = import.meta.env.BASE_URL || '/';
   const defaultProfile = 'https://res.cloudinary.com/dmae5wpe9/image/upload/v1780127792/esi53lgjgdwvr9jcbno4.png';
-  const isAdmin = user.role.toLowerCase() === 'admin';
+  const rawRole = user.role?.trim() || '';
+  const normalizedRole = rawRole.toLowerCase();
+  const isAdmin = normalizedRole === 'admin';
+  const roleLabel = isAdmin ? 'Administrator' : (rawRole ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1) : 'Customer');
 
   const isMobileView = windowWidth <= 1000;
 
@@ -95,7 +98,7 @@ export default function Sidebar() {
           />
           <div className="sidebar-title">
             <span className="title-main">{user.fullName ? user.fullName.split(' ')[0] : 'Welcome'}</span>
-            <span className="title-sub">{isAdmin ? 'Administrator' : 'Customer'}</span>
+            <span className="title-sub">{roleLabel}</span>
           </div>
           <button className="sidebar-toggle" onClick={handleToggle} aria-label="Toggle sidebar">
             {navOpen ? <FaTimes /> : <FaBars />}
@@ -135,7 +138,7 @@ export default function Sidebar() {
             </div>
             <div>
               <p className="sidebar-user-name">{user.fullName || 'Guest User'}</p>
-              <p className="sidebar-user-role">{user.role || 'Visitor'}</p>
+              <p className="sidebar-user-role">{roleLabel || 'Visitor'}</p>
             </div>
           </div>
           <div className="sidebar-action-buttons">
