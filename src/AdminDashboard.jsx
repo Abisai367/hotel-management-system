@@ -55,7 +55,26 @@ export default function AdminDashboard() {
   }, [data]);
 
   if (loading) return <div className="admin-loading">Loading dashboard…</div>;
-  if (error) return <div className="admin-error">Error: {error}</div>;
+  if (error) {
+    const isStaticHost = typeof window !== 'undefined' && /github\.io$/i.test(window.location.hostname);
+    const fetchProblem = String(error || '').toLowerCase().includes('failed to fetch') || String(error || '').includes('500');
+    return (
+      <div className="admin-error">
+        <div style={{marginBottom:12}}>Error: {error}</div>
+        {isStaticHost || fetchProblem ? (
+          <div>
+            <p>The admin dashboard needs the PHP backend to be reachable.</p>
+            <p style={{fontSize:13}}>Possible fixes:</p>
+            <ul style={{fontSize:13}}>
+              <li>Host the app on a PHP-capable server (XAMPP/WAMP/Apache) and serve the built files together with the <strong>api/</strong> folder.</li>
+              <li>Or deploy your PHP backend separately and rebuild the frontend with <code>VITE_API_URL</code> set to the backend base URL (e.g. <code>VITE_API_URL=https://your-backend.com/api</code>).</li>
+            </ul>
+            <p style={{fontSize:13}}>See the project README for deployment details.</p>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard">
