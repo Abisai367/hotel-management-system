@@ -12,6 +12,7 @@ import ManageEmployees from './ManageEmployees.jsx';
 import ChatRoom from './ChatRoom.jsx';
 import ErrorScreen from './ErrorScreen.jsx';
 import { MyCart } from './CartContext';
+import { getApiUrl } from './apiUrl.js';
 import './App.css';
 
 function App() {
@@ -21,7 +22,7 @@ function App() {
   const [roleLoaded, setRoleLoaded] = useState(!!localStorage.getItem('user_role'));
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const maxRetries = 15;
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
+  const apiUrl = getApiUrl();
 
   const loadUserCart = async () => {
     const customerId = localStorage.getItem('user_id');

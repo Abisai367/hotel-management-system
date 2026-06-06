@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { encryptMessage, decryptMessage } from './cryptoHelper';
 import { formatChatDate, formatChatTime, getChatDateSeparator } from './dateFormatter';
+import { getApiUrl } from './apiUrl.js';
 import './ChatRoom.css';
 
 export default function ChatRoom() {
@@ -24,7 +25,7 @@ export default function ChatRoom() {
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
+  const apiUrl = getApiUrl();
   const previousHistoryLengthRef = useRef(0);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './UploadCategories.css';
 import ScrollReveal from 'scrollreveal';
+import { getApiUrl } from './apiUrl.js';
 
 export default function ManageEmployees(){
   const [mode, setMode] = useState('list');
@@ -9,6 +10,7 @@ export default function ManageEmployees(){
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({full_name:'', phone:'', role:'Employee', shift_schedule:'', salary:''});
   const [message, setMessage] = useState('');
+  const apiUrl = getApiUrl();
 
   useEffect(()=>{
     const sr = ScrollReveal({ reset: false });
@@ -19,7 +21,7 @@ export default function ManageEmployees(){
 
   function fetchEmployees(){
     setLoading(true);
-    fetch('/api/get_employees.php')
+    fetch(`${apiUrl}/get_employees.php`)
       .then(r=>r.json())
       .then(j=>{
         if (j.status === 'success') setEmployees(j.employees || []);
@@ -49,7 +51,7 @@ export default function ManageEmployees(){
   function saveEmployee(){
     if (!selected || !selected.id) { setMessage('Select an employee first'); return; }
     setMessage('Saving...');
-    fetch('/api/update_employee.php', {
+    fetch(`${apiUrl}/update_employee.php`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ id: selected.id, ...form })
     }).then(r=>r.json()).then(j=>{
@@ -61,7 +63,7 @@ export default function ManageEmployees(){
   function unemploy(id){
     if (!confirm('Unemploy this user? This converts them to a customer.')) return;
     setMessage('Processing...');
-    fetch('/api/unemploy_employee.php', {
+    fetch(`${apiUrl}/unemploy_employee.php`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ id })
     }).then(r=>r.json()).then(j=>{
@@ -79,7 +81,7 @@ export default function ManageEmployees(){
       shift_schedule: form.shift_schedule,
       salary: form.salary
     };
-    fetch('/api/add_employee.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    fetch(`${apiUrl}/add_employee.php`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
       .then(r=>r.json()).then(j=>{
         if (j.status==='success'){ setMessage('Employee added'); fetchEmployees(); setForm({full_name:'',phone:'',role:'Employee',shift_schedule:'',salary:''}); setMode('list'); }
         else setMessage(j.message || 'Add failed');

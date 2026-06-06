@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './SignUp.css';
+import { getApiUrl } from './apiUrl.js';
 
 export default function SignUp() {
   const [fullName, setFullName] = useState('');
@@ -13,9 +14,7 @@ export default function SignUp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+  const apiUrl = getApiUrl();
   const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
 
   const handleImageChange = (e) => {

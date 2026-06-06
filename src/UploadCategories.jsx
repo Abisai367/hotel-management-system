@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import './UploadCategories.css'
 import { Link } from "react-router-dom";
 import ScrollReveal from "scrollreveal";
+import { getApiUrl } from './apiUrl.js';
 export default function UploadCategories(){
     const [product_name, setProductName] = useState("");
     const [description, setDescription] = useState("");   
@@ -15,9 +16,7 @@ export default function UploadCategories(){
     const [showAddPane, setShowAddPane] = useState(true);
     const [showCustomizePane, setShowCustomizePane] = useState(false);
     const [formMessage, setFormMessage] = useState("");
-    const baseUrl = import.meta.env.BASE_URL || '/';
-    const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
-    const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+    const apiUrl = getApiUrl();
     const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hotel_cloud';
     const [deleteByName, setDeleteByName] = useState("");
     const [editingProduct, setEditingProduct] = useState(null);

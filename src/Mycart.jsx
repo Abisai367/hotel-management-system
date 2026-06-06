@@ -2,15 +2,15 @@
 import { MyCart } from "./CartContext";
 import { Link } from "react-router-dom";
 import ScrollReveal from "scrollreveal";
+import { getApiUrl } from './apiUrl.js';
 import "./Mycart.css";
 
 export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
   const [cartLoading, setCartLoading] = useState(true);
   const [cartError, setCartError] = useState('');
-  const baseUrl = import.meta.env.BASE_URL || '/';
   const customerId = localStorage.getItem('user_id');
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
+  const apiUrl = getApiUrl();
 
   
   const [tableNumber, setTableNumber] = useState("");

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
+import { getApiUrl } from './apiUrl.js';
 
 export default function Login() {
   const [phone, setPhone] = useState('');
@@ -9,9 +10,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+  const apiUrl = getApiUrl();
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();

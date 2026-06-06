@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import './CategoriesDisplay.css';
 import { MyCart } from "./CartContext";
 import {FaFacebook, FaTwitter, FaInstagram} from 'react-icons/fa';
+import { getApiUrl } from './apiUrl.js';
 
 const capitalizeFirstWord = (value) => {
   if (!value || typeof value !== 'string') return "";
@@ -18,9 +19,7 @@ const CategoryDisplay = () => {
   const { myCart, setMyCart } = useContext(MyCart);
   const navigate = useNavigate();
 
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+  const apiUrl = getApiUrl();
   const customerId = localStorage.getItem('user_id');
   const [cartError, setCartError] = useState('');
 

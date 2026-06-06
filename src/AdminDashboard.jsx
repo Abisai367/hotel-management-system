@@ -2,11 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Line, Pie } from 'react-chartjs-2';
 import { Chart, LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend } from 'chart.js';
 import './AdminDashboard.css';
+import { getApiUrl } from './apiUrl.js';
 
 Chart.register(LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend);
 
 export default function AdminDashboard() {
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || '/api';
+  const apiUrl = getApiUrl();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -119,7 +120,7 @@ export default function AdminDashboard() {
         <section className="panel employees-panel">
           <h3>Best Employees</h3>
           <ul>
-            {data.employees.map((e) => (
+            {(data.employees || []).map((e) => (
               <li key={e.id} className="employee-item">
                 <img src={e.profile_image_url || '/projectpics/default.png'} alt="" />
                 <div>
@@ -134,7 +135,7 @@ export default function AdminDashboard() {
         <section className="panel trending-panel">
           <h3>Trending Dishes</h3>
           <ul>
-            {data.trending.map((p) => (
+            {(data.trending || []).map((p) => (
               <li key={p.product_id} className="trend-item">
                 <img src={p.product_path || '/projectpics/default.png'} alt="" />
                 <div>

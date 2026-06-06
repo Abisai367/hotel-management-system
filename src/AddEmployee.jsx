@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './SignUp.css'; 
+import './SignUp.css';
+import { getApiUrl } from './apiUrl.js';
 
 export default function AddEmployee() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Employee'); 
+  const [role, setRole] = useState('Employee');
   const [shiftSchedule, setShiftSchedule] = useState('');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [formMessage, setFormMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const defaultApiPath = import.meta.env.MODE === 'development' ? '/api' : `${baseUrl}api`;
-  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || defaultApiPath.replace(/\/+/g, '/');
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     const userRole = localStorage.getItem('user_role');

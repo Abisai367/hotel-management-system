@@ -1,3 +1,6 @@
-import { createContext } from "react";
+import { createContext } from 'react';
 
-export const MyCart = createContext();
+export const MyCart = createContext({
+  myCart: [],
+  setMyCart: () => {},
+});
