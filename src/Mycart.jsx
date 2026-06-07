@@ -1,53 +1,8 @@
 ﻿import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { MyCart } from "./CartContext";
 import { Link } from "react-router-dom";
-import ScrollReveal from "scrollreveal";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
 import { getApiUrl } from './apiUrl.js';
 import "./Mycart.css";
-import "leaflet/dist/leaflet.css";
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-const MapClickComponent = ({ onMapClick }) => {
-  useMapEvents({
-    click: (e) => {
-      if (onMapClick) {
-        try {
-          onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
-        } catch (err) {
-          console.error('Error handling map click:', err);
-        }
-      }
-    }
-  });
-  return null;
-};
-
-const MapWithClickHandler = ({ initialLocation, onLocationSelect }) => {
-  return (
-    <MapContainer 
-      center={[initialLocation.lat, initialLocation.lng]} 
-      zoom={15} 
-      style={{ height: '400px', width: '100%' }}
-    >
-      <TileLayer 
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
-        attribution="&copy; OpenStreetMap contributors"
-      />
-      <Marker position={[initialLocation.lat, initialLocation.lng]}>
-        <Popup>Selected location</Popup>
-      </Marker>
-      <MapClickComponent onMapClick={onLocationSelect} />
-    </MapContainer>
-  );
-};
 
 export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
@@ -70,14 +25,12 @@ export default function Mycart() {
   const [payMessage, setPayMessage] = useState(null);
   const [paymentSession, setPaymentSession] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState(null);
-  const [showMapPicker, setShowMapPicker] = useState(false);
-  const [mapSelectionLoading, setMapSelectionLoading] = useState(false);
-  const [mapSelectionError, setMapSelectionError] = useState(null);
-  const mapRef = useRef(null);
-  const tempLocationRef = useRef({ address: null, lat: null, lng: null });
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [autocompleteLoading, setAutocompleteLoading] = useState(false);
+  const [showLocationChoice, setShowLocationChoice] = useState(false);
+  const [deliveryLocationMode, setDeliveryLocationMode] = useState(null);
 
   const [pickupDay, setPickupDay] = useState("");
   const [pickupHour, setPickupHour] = useState("12");
@@ -108,17 +61,44 @@ export default function Mycart() {
     return `${dateTime.getFullYear()}-${String(dateTime.getMonth() + 1).padStart(2, '0')}-${String(dateTime.getDate()).padStart(2, '0')} ${String(dateTime.getHours()).padStart(2, '0')}:${String(dateTime.getMinutes()).padStart(2, '0')}:00`;
   };
 
-  const reverseGeocode = async (lat, lon) => {
+  const searchAddressSuggestions = async (query) => {
+    if (!query) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    setAutocompleteLoading(true);
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`, {
         headers: { 'User-Agent': 'HotelManagementSystem/1.0' }
       });
-      const data = await response.json();
-      return data.address?.road || data.address?.neighborhood || data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+      const results = await response.json();
+      setAddressSuggestions(results.map((item) => ({
+        label: item.display_name,
+        lat: item.lat,
+        lon: item.lon,
+      })));
     } catch (err) {
-      console.error('Reverse geocoding failed:', err);
-      return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+      console.error('Address lookup failed:', err);
+      setAddressSuggestions([]);
+    } finally {
+      setAutocompleteLoading(false);
     }
+  };
+
+  const handleDeliveryAddressChange = (e) => {
+    const value = e.target.value;
+    setDeliveryAddress(value);
+    setDeliveryLatitude(null);
+    setDeliveryLongitude(null);
+    searchAddressSuggestions(value);
+  };
+
+  const handleAddressSuggestionClick = (suggestion) => {
+    setDeliveryAddress(suggestion.label);
+    setDeliveryLatitude(suggestion.lat);
+    setDeliveryLongitude(suggestion.lon);
+    setAddressSuggestions([]);
   };
 
   const handleUseCurrentLocation = async () => {
@@ -132,11 +112,14 @@ export default function Mycart() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        const address = await reverseGeocode(latitude, longitude);
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
+          headers: { 'User-Agent': 'HotelManagementSystem/1.0' }
+        });
+        const data = await response.json();
+        const address = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         setDeliveryAddress(address);
         setDeliveryLatitude(latitude);
         setDeliveryLongitude(longitude);
-        setShowLocationModal(false);
         setLocationLoading(false);
       },
       (error) => {
@@ -144,12 +127,6 @@ export default function Mycart() {
         setLocationLoading(false);
       }
     );
-  };
-
-  const closeLocationModal = () => {
-    setShowLocationModal(false);
-    setLocationError(null);
-    setMapSelectionError(null);
   };
 
   useEffect(() => {
@@ -170,9 +147,6 @@ export default function Mycart() {
   };
   const handleContactNumberChange = (e) => {
     setContactNumber(e.target.value);
-  };
-  const handleDeliveryAddressChange = (e) => {
-    setDeliveryAddress(e.target.value);
   };
   const handlePaymentNumberChange = (e) => {
     setPaymentNumber(e.target.value);
@@ -422,24 +396,6 @@ export default function Mycart() {
 
 
 
-  useEffect(() => {
-    const sr = ScrollReveal({ reset: false });
-    sr.reveal(".my-cart-header", {
-      distance: "30px",
-      origin: "top",
-      duration: 700,
-      easing: "ease-in-out",
-    });
-    sr.reveal(".cart-items-panel, .empty-cart-panel", {
-      distance: "20px",
-      origin: "bottom",
-      duration: 650,
-      interval: 120,
-      easing: "ease-in-out",
-    });
-    return () => sr.destroy();
-  }, []);
-
   return (
     <main className="my-cart-page">
       <section className="my-cart-header">
@@ -548,12 +504,67 @@ export default function Mycart() {
               )}
               {orderType === 'delivery' && (
                 <div>
-                  <div className="location-selector-wrapper">
-                    <label>Delivery Location</label>
-                    <button type="button" className="location-selector-button" onClick={() => setShowLocationModal(true)}>
-                      {deliveryAddress ? '[LOCATION] ' + deliveryAddress : 'Select Delivery Location'}
+                  {deliveryLocationMode === null ? (
+                    <button
+                      type="button"
+                      className="location-selector-button"
+                      onClick={() => setShowLocationChoice(true)}
+                    >
+                      {deliveryAddress ? '✓ ' + deliveryAddress : 'Select Delivery Location'}
                     </button>
-                  </div>
+                  ) : deliveryLocationMode === 'current' ? (
+                    <div className="selected-delivery-location">
+                      <p className="location-label">📍 Current Location:</p>
+                      <p className="location-text">{deliveryAddress}</p>
+                      <button
+                        type="button"
+                        className="change-location-button"
+                        onClick={() => {
+                          setDeliveryLocationMode(null);
+                          setDeliveryAddress('');
+                          setDeliveryLatitude(null);
+                          setDeliveryLongitude(null);
+                        }}
+                      >
+                        Change Location
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="location-input-wrapper">
+                      <label htmlFor="deliveryAddress">Delivery Address</label>
+                      <input
+                        id="deliveryAddress"
+                        type="text"
+                        placeholder="Type delivery address"
+                        value={deliveryAddress}
+                        onChange={handleDeliveryAddressChange}
+                        autoComplete="off"
+                      />
+                      {autocompleteLoading && <p className="info-message">Searching addresses...</p>}
+                      {addressSuggestions.length > 0 && (
+                        <ul className="suggestions-list">
+                          {addressSuggestions.map((suggestion, idx) => (
+                            <li key={idx} onClick={() => handleAddressSuggestionClick(suggestion)}>
+                              {suggestion.label}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <button
+                        type="button"
+                        className="change-location-button"
+                        onClick={() => {
+                          setDeliveryLocationMode(null);
+                          setDeliveryAddress('');
+                          setDeliveryLatitude(null);
+                          setDeliveryLongitude(null);
+                          setAddressSuggestions([]);
+                        }}
+                      >
+                        Back to Options
+                      </button>
+                    </div>
+                  )}
                   <label>Contact Of the Receiver</label>
                   <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
                 </div>
@@ -690,12 +701,67 @@ export default function Mycart() {
                         )}
                         {orderType === 'delivery' && (
                           <div>
-                            <div className="location-selector-wrapper">
-                              <label>Delivery Location</label>
-                              <button type="button" className="location-selector-button" onClick={() => setShowLocationModal(true)}>
-                                {deliveryAddress ? '[LOCATION] ' + deliveryAddress : 'Select Delivery Location'}
+                            {deliveryLocationMode === null ? (
+                              <button
+                                type="button"
+                                className="location-selector-button"
+                                onClick={() => setShowLocationChoice(true)}
+                              >
+                                {deliveryAddress ? '✓ ' + deliveryAddress : 'Select Delivery Location'}
                               </button>
-                            </div>
+                            ) : deliveryLocationMode === 'current' ? (
+                              <div className="selected-delivery-location">
+                                <p className="location-label">📍 Current Location:</p>
+                                <p className="location-text">{deliveryAddress}</p>
+                                <button
+                                  type="button"
+                                  className="change-location-button"
+                                  onClick={() => {
+                                    setDeliveryLocationMode(null);
+                                    setDeliveryAddress('');
+                                    setDeliveryLatitude(null);
+                                    setDeliveryLongitude(null);
+                                  }}
+                                >
+                                  Change Location
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="location-input-wrapper">
+                                <label htmlFor="deliveryAddress">Delivery Address</label>
+                                <input
+                                  id="deliveryAddress"
+                                  type="text"
+                                  placeholder="Type delivery address"
+                                  value={deliveryAddress}
+                                  onChange={handleDeliveryAddressChange}
+                                  autoComplete="off"
+                                />
+                                {autocompleteLoading && <p className="info-message">Searching addresses...</p>}
+                                {addressSuggestions.length > 0 && (
+                                  <ul className="suggestions-list">
+                                    {addressSuggestions.map((suggestion, idx) => (
+                                      <li key={idx} onClick={() => handleAddressSuggestionClick(suggestion)}>
+                                        {suggestion.label}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                                <button
+                                  type="button"
+                                  className="change-location-button"
+                                  onClick={() => {
+                                    setDeliveryLocationMode(null);
+                                    setDeliveryAddress('');
+                                    setDeliveryLatitude(null);
+                                    setDeliveryLongitude(null);
+                                    setAddressSuggestions([]);
+                                  }}
+                                >
+                                  Back to Options
+                                </button>
+                              </div>
+                            )}
                             <label>Contact Of the Receiver</label>
                             <input type="text" placeholder="Enter contact number" value={contactNumber} onChange={handleContactNumberChange} />
                           </div>
@@ -726,102 +792,51 @@ export default function Mycart() {
         </section>
       )}
 
-      {showLocationModal && (
-        <div className="modal-overlay" onClick={closeLocationModal}>
+      {showLocationChoice && (
+        <div className="modal-overlay" onClick={() => setShowLocationChoice(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Select Delivery Location</h2>
-              <button type="button" className="modal-close" onClick={closeLocationModal}>x</button>
+              <button type="button" className="modal-close" onClick={() => setShowLocationChoice(false)}>×</button>
             </div>
 
             {locationError && <p className="error-message">{locationError}</p>}
 
-            {!showMapPicker ? (
-              <>
-                <div className="location-options">
-                  <button 
-                    type="button" 
-                    className="location-option-button"
-                    onClick={handleUseCurrentLocation}
-                    disabled={locationLoading}
-                  >
-                    {locationLoading ? 'Getting location...' : 'Use My Current Location'}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="location-option-button"
-                    onClick={() => setShowMapPicker(true)}
-                  >
-                    Select Location On Map
-                  </button>
-                </div>
+            <div className="location-options">
+              <button
+                type="button"
+                className="location-option-button"
+                onClick={async () => {
+                  await handleUseCurrentLocation();
+                  setDeliveryLocationMode('current');
+                  setShowLocationChoice(false);
+                }}
+                disabled={locationLoading}
+              >
+                {locationLoading ? '📍 Getting your location...' : '📍 Use My Current Location'}
+              </button>
 
-                <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    className="secondary-button"
-                    onClick={closeLocationModal}
-                  >
-                    Close
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="map-container">
-                  <MapWithClickHandler 
-                    initialLocation={{ lat: -1.2921, lng: 36.8219 }}
-                    onLocationSelect={async (coords) => {
-                      try {
-                        setMapSelectionLoading(true);
-                        setMapSelectionError(null);
-                        const address = await reverseGeocode(coords.lat, coords.lng);
-                        if (!address) {
-                          throw new Error('Failed to get address');
-                        }
-                        tempLocationRef.current = {
-                          address,
-                          lat: coords.lat,
-                          lng: coords.lng
-                        };
-                      } catch (err) {
-                        console.error('Map selection error:', err);
-                        setMapSelectionError('Failed to select location. Please try again.');
-                      } finally {
-                        setMapSelectionLoading(false);
-                      }
-                    }}
-                  />
-                </div>
-                <p className="map-hint">Click on the map to select a location</p>
-                <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    className="secondary-button"
-                    onClick={() => setShowMapPicker(false)}
-                  >
-                    Back
-                  </button>
-                  <button 
-                    type="button" 
-                    className="primary-button"
-                    onClick={() => {
-                      if (tempLocationRef.current.address) {
-                        setDeliveryAddress(tempLocationRef.current.address);
-                        setDeliveryLatitude(tempLocationRef.current.lat);
-                        setDeliveryLongitude(tempLocationRef.current.lng);
-                        closeLocationModal();
-                      }
-                    }}
-                  >
-                    Confirm Location
-                  </button>
-                </div>
-              </>
-            )}
+              <button
+                type="button"
+                className="location-option-button"
+                onClick={() => {
+                  setDeliveryLocationMode('type');
+                  setShowLocationChoice(false);
+                }}
+              >
+                ✏️ Type Address
+              </button>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="secondary-button" onClick={() => setShowLocationChoice(false)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
+
     </main>
   );
 }
