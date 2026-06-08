@@ -510,11 +510,11 @@ export default function Mycart() {
                       className="location-selector-button"
                       onClick={() => setShowLocationChoice(true)}
                     >
-                      {deliveryAddress ? '✓ ' + deliveryAddress : 'Select Delivery Location'}
+                      {deliveryAddress ? deliveryAddress : 'Select Delivery Location'}
                     </button>
                   ) : deliveryLocationMode === 'current' ? (
                     <div className="selected-delivery-location">
-                      <p className="location-label">📍 Current Location:</p>
+                      <p className="location-label">Current Location:</p>
                       <p className="location-text">{deliveryAddress}</p>
                       <button
                         type="button"
@@ -711,7 +711,7 @@ export default function Mycart() {
                               </button>
                             ) : deliveryLocationMode === 'current' ? (
                               <div className="selected-delivery-location">
-                                <p className="location-label">📍 Current Location:</p>
+                                <p className="location-label">Current Location:</p>
                                 <p className="location-text">{deliveryAddress}</p>
                                 <button
                                   type="button"
@@ -813,7 +813,7 @@ export default function Mycart() {
                 }}
                 disabled={locationLoading}
               >
-                {locationLoading ? '📍 Getting your location...' : '📍 Use My Current Location'}
+                {locationLoading ? 'Getting your location...' : 'Use My Current Location'}
               </button>
 
               <button
@@ -824,7 +824,7 @@ export default function Mycart() {
                   setShowLocationChoice(false);
                 }}
               >
-                ✏️ Type Address
+                Type Address
               </button>
             </div>
 
