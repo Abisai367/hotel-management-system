@@ -20,7 +20,7 @@ const CategoryDisplay = () => {
   const navigate = useNavigate();
 
   const apiUrl = getApiUrl();
-  const customerId = localStorage.getItem('user_id');
+  const customerId = sessionStorage.getItem('user_id');
   const [cartError, setCartError] = useState('');
 
   const getProductImageUrl = (productPath) => {
@@ -79,8 +79,8 @@ const CategoryDisplay = () => {
     return myCart.some((item) => Number(item.product_id) === Number(product.product_id));
   };
 
-  const isAuthenticated = () => Boolean(localStorage.getItem('user_role') && customerId);
-  const isAdmin = () => localStorage.getItem('user_role')?.toLowerCase() === 'admin';
+  const isAuthenticated = () => Boolean(sessionStorage.getItem('user_role') && customerId);
+  const isAdmin = () => sessionStorage.getItem('user_role')?.toLowerCase() === 'admin';
 
   const handleCart = async (product) => {
     if (!isAuthenticated()) {

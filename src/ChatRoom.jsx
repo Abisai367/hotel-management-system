@@ -5,7 +5,7 @@ import { getApiUrl } from './apiUrl.js';
 import './ChatRoom.css';
 
 export default function ChatRoom() {
-  const currentUserId = localStorage.getItem('user_id');
+  const currentUserId = sessionStorage.getItem('user_id');
   const [searchQuery, setSearchQuery] = useState('');
   const [chatList, setChatList] = useState([]);
   const [activeContact, setActiveContact] = useState(null);

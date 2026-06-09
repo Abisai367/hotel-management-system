@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaThLarge, FaUtensils, FaComments, FaFileInvoice, FaBars, FaTimes, FaPlus } from 'react-icons/fa';
+import { FaThLarge, FaUtensils, FaComments, FaFileInvoice, FaBars, FaTimes, FaPlus, FaTasks } from 'react-icons/fa';
 import { FaGear, FaBell, FaHeadset } from "react-icons/fa6";
+import { isAdminRole, isStaffRole, roleLabel } from './roles.js';
 import './sidebar.css'
 
 export default function Sidebar() {
@@ -12,9 +13,9 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const role = localStorage.getItem('user_role') || '';
-    const fullName = localStorage.getItem('full_name') || '';
-    const profileImage = localStorage.getItem('profile_image') || '';
+    const role = sessionStorage.getItem('user_role') || '';
+    const fullName = sessionStorage.getItem('full_name') || '';
+    const profileImage = sessionStorage.getItem('profile_image') || '';
     setUser({ role, fullName, profileImage });
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -48,13 +49,14 @@ export default function Sidebar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('full_name');
-    localStorage.removeItem('profile_image');
-    localStorage.removeItem('shift_schedule');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('myCart');
-    localStorage.removeItem('cartItems');
+    sessionStorage.removeItem('user_role');
+    sessionStorage.removeItem('full_name');
+    sessionStorage.removeItem('profile_image');
+    sessionStorage.removeItem('shift_schedule');
+    sessionStorage.removeItem('user_id');
+    sessionStorage.removeItem('salary');
+    sessionStorage.removeItem('myCart');
+    sessionStorage.removeItem('cartItems');
     window.dispatchEvent(new Event('authchange'));
     navigate('/login', { replace: true });
   };
@@ -62,9 +64,9 @@ export default function Sidebar() {
   const baseUrl = import.meta.env.BASE_URL || '/';
   const defaultProfile = 'https://res.cloudinary.com/dmae5wpe9/image/upload/v1780127792/esi53lgjgdwvr9jcbno4.png';
   const rawRole = user.role?.trim() || '';
-  const normalizedRole = rawRole.toLowerCase();
-  const isAdmin = normalizedRole === 'admin';
-  const roleLabel = isAdmin ? 'Administrator' : (rawRole ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1) : 'Customer');
+  const isAdmin = isAdminRole(rawRole);
+  const isStaff = isStaffRole(rawRole);
+  const displayedRole = roleLabel(rawRole);
 
   const isMobileView = windowWidth <= 1000;
 
@@ -98,7 +100,7 @@ export default function Sidebar() {
           />
           <div className="sidebar-title">
             <span className="title-main">{user.fullName ? user.fullName.split(' ')[0] : 'Welcome'}</span>
-            <span className="title-sub">{roleLabel}</span>
+            <span className="title-sub">{displayedRole}</span>
           </div>
           <button className="sidebar-toggle" onClick={handleToggle} aria-label="Toggle sidebar">
             {navOpen ? <FaTimes /> : <FaBars />}
@@ -111,6 +113,12 @@ export default function Sidebar() {
             <Link to="/MyCart"><li className="nav-item"><FaFileInvoice className="nav-icon"/> My Cart</li></Link>
             {isAdmin && (
               <Link to="/admin"><li className="nav-item"><FaThLarge className="nav-icon"/> Dashboard</li></Link>
+            )}
+            {isStaff && !isAdmin && (
+              <Link to="/staff-dashboard"><li className="nav-item"><FaTasks className="nav-icon"/> Work Dashboard</li></Link>
+            )}
+            {isAdmin && (
+              <Link to="/staff-dashboard"><li className="nav-item"><FaTasks className="nav-icon"/> Staff View</li></Link>
             )}
             {isAdmin && (
               <Link to="/upload"><li className="nav-item"><FaPlus className="nav-icon"/> Manage Products</li></Link>
@@ -138,7 +146,7 @@ export default function Sidebar() {
             </div>
             <div>
               <p className="sidebar-user-name">{user.fullName || 'Guest User'}</p>
-              <p className="sidebar-user-role">{roleLabel || 'Visitor'}</p>
+              <p className="sidebar-user-role">{displayedRole || 'Visitor'}</p>
             </div>
           </div>
           <div className="sidebar-action-buttons">

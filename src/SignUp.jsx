@@ -89,13 +89,13 @@ export default function SignUp() {
 
       if (data.status === 'success') {
         alert('Account created successfully! Redirecting to categories...');
-        localStorage.setItem('user_role', 'customer');
-        localStorage.setItem('full_name', fullName);
-        localStorage.setItem('user_id', data.user?.id || '');
+        sessionStorage.setItem('user_role', 'customer');
+        sessionStorage.setItem('full_name', fullName);
+        sessionStorage.setItem('user_id', data.user?.id || '');
         
         const sanitizedUploaded = (uploadedProfileUrl || '').trim();
         const profileToStore = (sanitizedUploaded && !sanitizedUploaded.includes('projectpics')) ? sanitizedUploaded : '';
-        localStorage.setItem('profile_image', profileToStore);
+        sessionStorage.setItem('profile_image', profileToStore);
         window.dispatchEvent(new Event('authchange'));
         navigate('/categories', { replace: true });
       } else {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
 import { getApiUrl } from './apiUrl.js';
+import { staffHomeForRole } from './roles.js';
 
 export default function Login() {
   const [phone, setPhone] = useState('');
@@ -40,16 +41,17 @@ export default function Login() {
       const data = await response.json();
 
       if (data.status === 'success') {
-        localStorage.setItem('user_role', data.user.role);
-        localStorage.setItem('full_name', data.user.full_name);
-        localStorage.setItem('user_id', data.user.id || '');
+        sessionStorage.setItem('user_role', data.user.role);
+        sessionStorage.setItem('full_name', data.user.full_name);
+        sessionStorage.setItem('user_id', data.user.id || '');
         const returnedProfile = data.user.profile_image_url || '';
         const sanitizedProfile = (returnedProfile && !returnedProfile.includes('projectpics')) ? returnedProfile : '';
-        localStorage.setItem('profile_image', sanitizedProfile);
-        localStorage.setItem('shift_schedule', data.user.shift_schedule || '');
+        sessionStorage.setItem('profile_image', sanitizedProfile);
+        sessionStorage.setItem('shift_schedule', data.user.shift_schedule || '');
+        sessionStorage.setItem('salary', data.user.salary || 0);
         window.dispatchEvent(new Event('authchange'));
 
-        navigate('/categories', { replace: true });
+        navigate(staffHomeForRole(data.user.role), { replace: true });
       } else {
         setFormMessage(data.message || 'Invalid phone number or password configuration.');
       }

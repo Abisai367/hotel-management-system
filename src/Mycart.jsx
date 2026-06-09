@@ -8,7 +8,7 @@ export default function Mycart() {
   const { myCart, setMyCart } = useContext(MyCart);
   const [cartLoading, setCartLoading] = useState(true);
   const [cartError, setCartError] = useState('');
-  const customerId = localStorage.getItem('user_id');
+  const customerId = sessionStorage.getItem('user_id');
   const apiUrl = getApiUrl();
 
   

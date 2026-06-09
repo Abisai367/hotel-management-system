@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './SignUp.css';
 import { getApiUrl } from './apiUrl.js';
+import { STAFF_ROLES, isAdminRole, roleLabel } from './roles.js';
 
 export default function AddEmployee() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Employee');
+  const [role, setRole] = useState('waiter');
   const [shiftSchedule, setShiftSchedule] = useState('');
   const [salary, setSalary] = useState('');
   const [file, setFile] = useState(null);
@@ -18,8 +19,8 @@ export default function AddEmployee() {
   const apiUrl = getApiUrl();
 
   useEffect(() => {
-    const userRole = localStorage.getItem('user_role');
-    if (userRole !== 'Admin' && userRole !== 'admin') {
+    const userRole = sessionStorage.getItem('user_role');
+    if (!isAdminRole(userRole)) {
       alert('Unauthorized! This action requires administrator permissions.');
       navigate('/categories');
     }
@@ -83,7 +84,7 @@ export default function AddEmployee() {
 
     setFormMessage('Saving new employee configuration...');
 
-    const adminToken = localStorage.getItem('user_id'); 
+    const adminToken = sessionStorage.getItem('user_id'); 
 
     const employeeData = new FormData();
     employeeData.append('full_name', fullName);
@@ -113,7 +114,7 @@ export default function AddEmployee() {
         setFullName('');
         setPhone('');
         setPassword('');
-        setRole('Employee');
+        setRole('waiter');
         setShiftSchedule('');
         setSalary('');
         setFile(null);
@@ -180,9 +181,9 @@ export default function AddEmployee() {
               onChange={(e) => setRole(e.target.value)}
               style={{ width: '100%', padding: '11px', border: '1px solid #cccccc', borderRadius: '6px' }}
             >
-              <option value="Employee">Employee (Standard Staff)</option>
-              <option value="Supervisor">Supervisor</option>
-              <option value="Admin">Co-Administrator</option>
+              {STAFF_ROLES.map((staffRole) => (
+                <option key={staffRole} value={staffRole}>{roleLabel(staffRole)}</option>
+              ))}
             </select>
           </div>
 

@@ -9,23 +9,25 @@ import SignUp from './SignUp.jsx';
 import AddEmployee from './AddEmployee.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import ManageEmployees from './ManageEmployees.jsx';
+import StaffDashboard from './StaffDashboard.jsx';
 import ChatRoom from './ChatRoom.jsx';
 import ErrorScreen from './ErrorScreen.jsx';
 import { MyCart } from './CartContext';
 import { getApiUrl } from './apiUrl.js';
+import { isAdminRole, isStaffRole, staffHomeForRole } from './roles.js';
 import './App.css';
 
 function App() {
   const [myCart, setMyCart] = useState([]);
-  const [auth, setAuth] = useState(() => !!localStorage.getItem('user_role'));
+  const [auth, setAuth] = useState(() => !!sessionStorage.getItem('user_role'));
   const [loading, setLoading] = useState(false);
-  const [roleLoaded, setRoleLoaded] = useState(!!localStorage.getItem('user_role'));
+  const [roleLoaded, setRoleLoaded] = useState(!!sessionStorage.getItem('user_role'));
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const maxRetries = 15;
   const apiUrl = getApiUrl();
 
   const loadUserCart = async () => {
-    const customerId = localStorage.getItem('user_id');
+    const customerId = sessionStorage.getItem('user_id');
     if (!customerId) {
       setMyCart([]);
       return;
@@ -46,7 +48,7 @@ function App() {
 
   useEffect(() => {
     const onAuthChange = () => {
-      const role = localStorage.getItem('user_role');
+      const role = sessionStorage.getItem('user_role');
       const hasRole = Boolean(role && role.trim());
       setAuth(hasRole);
       setRoleLoaded(hasRole);
@@ -59,7 +61,7 @@ function App() {
 
       let attempts = 0;
       const roleCheckInterval = setInterval(() => {
-        const currentRole = localStorage.getItem('user_role');
+        const currentRole = sessionStorage.getItem('user_role');
         if (currentRole && currentRole.trim()) {
           setRoleLoaded(true);
           setLoading(false);
@@ -88,7 +90,7 @@ function App() {
       setLoading(true);
       let attempts = 0;
       const interval = setInterval(() => {
-        const role = localStorage.getItem('user_role');
+        const role = sessionStorage.getItem('user_role');
         if (role && role.trim()) {
           setRoleLoaded(true);
           setLoading(false);
@@ -115,13 +117,13 @@ function App() {
   }, []);
 
   const isAuthenticated = () => auth && roleLoaded;
-  const isAdminOrEmployee = () => {
-    const role = localStorage.getItem('user_role');
-    return role === 'Admin' || role === 'admin' || role === 'Employee' || role === 'Supervisor';
-  };
   const isStrictAdmin = () => {
-    const role = localStorage.getItem('user_role');
-    return role === 'Admin' || role === 'admin';
+    const role = sessionStorage.getItem('user_role');
+    return isAdminRole(role);
+  };
+  const isStaff = () => {
+    const role = sessionStorage.getItem('user_role');
+    return isStaffRole(role);
   };
 
   return (
@@ -142,9 +144,9 @@ function App() {
               </div>
             )}
             <Routes>
-              <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/categories" replace />} />
-              <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to="/categories" replace />} />
-              <Route path="/" element={<Navigate to="/categories" replace />} />
+              <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to={staffHomeForRole(sessionStorage.getItem('user_role'))} replace />} />
+              <Route path="/register" element={!isAuthenticated() ? <SignUp /> : <Navigate to={staffHomeForRole(sessionStorage.getItem('user_role'))} replace />} />
+              <Route path="/" element={<Navigate to={isAuthenticated() ? staffHomeForRole(sessionStorage.getItem('user_role')) : '/categories'} replace />} />
               <Route path="/categories" element={<CategoriesDisplay />} />
               <Route path="/MyCart" element={<Mycart />} />
               <Route 
@@ -162,6 +164,18 @@ function App() {
               <Route 
                 path="/manage-employees" 
                 element={isAuthenticated() && isStrictAdmin() ? <ManageEmployees /> : <Navigate to="/login" />} 
+              />
+              <Route
+                path="/staff-dashboard"
+                element={isAuthenticated() && isStaff() ? <StaffDashboard /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/waiter-dashboard"
+                element={isAuthenticated() && isStaff() ? <StaffDashboard /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/delivery-dashboard"
+                element={isAuthenticated() && isStaff() ? <StaffDashboard /> : <Navigate to="/login" />}
               />
               <Route path="/messages" element={isAuthenticated() ? <ChatRoom /> : <Navigate to="/login" />} />
               <Route path="/service-unavailable" element={<ErrorScreen code={503} />} />

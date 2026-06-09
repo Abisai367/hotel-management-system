@@ -1,0 +1,262 @@
+.staff-dashboard {
+  min-height: 100vh;
+  padding: 24px;
+  background: #f3f5f7;
+  color: #0d2b2b;
+}
+
+.staff-loading {
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.staff-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.staff-kicker {
+  margin: 0 0 6px;
+  color: #d3a42d;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.staff-hero h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.staff-copy {
+  color: #5d6a75;
+  margin: 8px 0 0;
+}
+
+.staff-range {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.staff-range label {
+  font-size: 13px;
+  color: #5d6a75;
+  font-weight: 700;
+}
+
+.staff-range select,
+.assignment-actions select {
+  width: 100%;
+  border: 1px solid rgba(11, 74, 70, 0.16);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #0d2b2b;
+}
+
+.staff-message {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-left: 4px solid #d3a42d;
+  border-radius: 8px;
+  background: rgba(211, 164, 45, 0.14);
+  color: #0d2b2b;
+}
+
+.staff-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.staff-stat-card,
+.assignment-card,
+.staff-section {
+  background: #fff;
+  border: 1px solid rgba(11, 74, 70, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(11, 74, 70, 0.06);
+}
+
+.staff-stat-card {
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.staff-stat-card span,
+.staff-stat-card small {
+  color: #5d6a75;
+}
+
+.staff-stat-card strong {
+  color: #0b4a46;
+  font-size: 24px;
+}
+
+.staff-section {
+  padding: 16px;
+}
+
+.staff-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.staff-section-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.assignment-list {
+  display: grid;
+  gap: 12px;
+}
+
+.assignment-card {
+  padding: 14px;
+}
+
+.assignment-card-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.assignment-type {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(11, 74, 70, 0.08);
+  color: #0b4a46;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.assignment-card h3 {
+  margin: 8px 0 4px;
+  font-size: 18px;
+}
+
+.assignment-card p {
+  margin: 0;
+  color: #5d6a75;
+}
+
+.assignment-status {
+  display: grid;
+  gap: 4px;
+  text-align: right;
+  color: #5d6a75;
+}
+
+.assignment-status strong {
+  color: #0b4a46;
+  text-transform: capitalize;
+}
+
+.assignment-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  color: #5d6a75;
+  font-size: 13px;
+}
+
+.assignment-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.staff-primary-button,
+.staff-secondary-button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.staff-primary-button {
+  background: #0b4a46;
+  color: #fff;
+}
+
+.staff-secondary-button {
+  background: #d3a42d;
+  color: #0b4a46;
+}
+
+.staff-empty {
+  padding: 18px;
+  color: #5d6a75;
+  border: 1px dashed rgba(11, 74, 70, 0.18);
+  border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+  .staff-dashboard {
+    padding: 16px;
+  }
+
+  .staff-hero,
+  .staff-section-header,
+  .assignment-card-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .staff-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-status {
+    text-align: left;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .staff-dashboard {
+    background: #071018;
+    color: #e6f7f5;
+  }
+
+  .staff-stat-card,
+  .assignment-card,
+  .staff-section,
+  .staff-range select,
+  .assignment-actions select {
+    background: #0b1220;
+    color: #e6f7f5;
+    border-color: rgba(125, 220, 210, 0.08);
+  }
+
+  .staff-copy,
+  .staff-stat-card span,
+  .staff-stat-card small,
+  .assignment-card p,
+  .assignment-meta,
+  .assignment-status,
+  .staff-empty {
+    color: #9aa6ac;
+  }
+
+  .staff-stat-card strong,
+  .assignment-status strong {
+    color: #7ee3d7;
+  }
+}
